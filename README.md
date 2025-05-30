@@ -3,47 +3,48 @@
 A cross-platform mobile app built with **React Native (Expo)** to diagnose car issues using dashboard light scanning, engine sound analysis, and repair tutorials.
 
 ## 📁 Project Structure
-Motto-Fix/
-├── assets/ # Static files (images, fonts, icons)
-│ ├── images/ # App visuals (logos, UI graphics)
-│ └── fonts/ # Custom fonts (if any)
-│
-├── components/ # Reusable UI components
-│ ├── buttons/ # Custom buttons (PrimaryButton.tsx)
-│ ├── cards/ # Diagnostic cards (FaultCard.tsx)
-│ └── ... # Other shared components
-│
-├── screens/ # App screens (1 file per screen)
-│ ├── auth/ # Auth-related screens
-│ │ ├── LoginScreen.tsx # User login
-│ │ └── SignupScreen.tsx # User registration
-│ │
-│ ├── diagnostic/ # Diagnostic flows
+Motto-Fix/  
+├── assets/ # Static files (images, fonts, icons)  
+│ ├── images/ # App visuals (logos, UI graphics)  
+│ └── fonts/ # Custom fonts (if any)  
+│  
+├── components/ # Reusable UI components  
+│ ├── buttons/ # Custom buttons (PrimaryButton.tsx)  
+│ ├── cards/ # Diagnostic cards (FaultCard.tsx)  
+│ └── ... # Other shared components  
+│  
+├── screens/ # App screens (1 file per screen)  
+│ ├── auth/ # Auth-related screens  
+│ │ ├── LoginScreen.tsx # User login  
+│ │ └── SignupScreen.tsx # User registration  
+│ │  
+│ ├── diagnostic/ # Diagnostic flows  
 │ │ ├── DashboardScan.tsx # Dashboard light scanner
-│ │ └── EngineSound.tsx # Engine sound analyzer
-│ │
-│ └── ... # Other screens (Home, History, etc.)
-│
-├── navigation/ # App routing
-│ ├── AppNavigator.tsx # Main stack navigator
-│ └── BottomTabs.tsx # Tab navigator (if needed)
-│
-├── services/ # APIs and external services
-│ ├── auth.ts # Firebase/auth functions
-│ ├── diagnosticAPI.ts # Mock/real diagnostic API calls
+
+│ │ └── EngineSound.tsx # Engine sound analyzer  
+│ │  
+│ └── ... # Other screens (Home, History, etc.)  
+│  
+├── navigation/ # App routing  
+│ ├── AppNavigator.tsx # Main stack navigator  
+│ └── BottomTabs.tsx # Tab navigator (if needed)  
+│  
+├── services/ # APIs and external services  
+│ ├── auth.ts # Firebase/auth functions  
+│ ├── diagnosticAPI.ts # Mock/real diagnostic API calls  
 │ └── youtubeService.ts # Fetch repair tutorials
-│
-├── utils/ # Helpers and utilities
-│ ├── constants.ts # App-wide constants (colors, API keys)
-│ ├── formatters.ts # Data formatting functions
-│ └── hooks/ # Custom React hooks
-│
-├── types/ # TypeScript interfaces
-│ ├── User.ts # User data model
-│ └── Diagnostic.ts # Fault code interfaces
-│
-├── App.tsx # Root component
-├── app.json # Expo configuration
+│  
+├── utils/ # Helpers and utilities  
+│ ├── constants.ts # App-wide constants (colors, API keys)  
+│ ├── formatters.ts # Data formatting functions  
+│ └── hooks/ # Custom React hooks  
+│  
+├── types/ # TypeScript interfaces  
+│ ├── User.ts # User data model  
+│ └── Diagnostic.ts # Fault code interfaces  
+│  
+├── App.tsx # Root component  
+├── app.json # Expo configuration   
 └── package.json # Dependencies
 
 ---
