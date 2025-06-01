@@ -1,11 +1,17 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import LoginScreen from './screens/auth/Login';
+import BottomNavigation from './navigation/BottomNavigation';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Welcome to M-Fix App! this is not happening</Text>
-      <Text>Your safety our priority</Text>
+      {/* Your actual screen */}
+      <LoginScreen />
+
+      {/* Bottom nav on top of everything */}
+      <BottomNavigation />
+
       <StatusBar style="auto" />
     </View>
   );
@@ -13,9 +19,7 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flex: 1, // Important: makes this View take full screen height
+    position: 'relative', // Ensures BottomNavigation can be absolutely positioned inside
   },
 });
