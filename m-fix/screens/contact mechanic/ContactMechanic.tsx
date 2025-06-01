@@ -38,13 +38,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1E1E1E',
     paddingTop: 20,
-    paddingHorizontal: 20, // Added padding for left alignment
+    paddingHorizontal: 20, 
   },
   header: {
     fontSize: 24,
     color: '#FFFFFF',
     marginBottom: 20,
-    textAlign: 'left', // Changed to left alignment
+    textAlign: 'left', 
   },
   mechanicList: {
     marginBottom: 50,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 15,
     borderRadius: 10,
-    alignItems: 'center', // Center-aligns the button content
+    alignItems: 'center',
   },
   buttonText: {
     color: '#000',
