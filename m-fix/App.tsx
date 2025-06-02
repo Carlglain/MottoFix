@@ -4,12 +4,13 @@ import LoginScreen from './screens/auth/Login';
 import BottomNavigation from './navigation/BottomNavigation';
 import EngineSound from './screens/diagnostics/EngineSound'
 import DashbordScan from './screens/diagnostics/DashboardScan'
+import DiagnosisResult from './screens/diagnostics/DiagnosisResult'
 
 export default function App() {
   return (
     <View style={styles.container}>
       {/* Your actual screen */}
-      <DashbordScan />
+      <DiagnosisResult />
 
       {/* Bottom nav on top of everything */}
       <BottomNavigation />
