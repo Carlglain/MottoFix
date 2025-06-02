@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   View,
@@ -75,9 +76,11 @@ const LoginScreen = ({ navigation }) => {
   );
 };
 
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
     backgroundColor: '#000',
     padding: 20,
     justifyContent: 'center',
@@ -189,3 +192,4 @@ const styles = StyleSheet.create({
 });
 
 export default LoginScreen;
+

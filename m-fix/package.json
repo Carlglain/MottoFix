@@ -18,6 +18,11 @@
     "expo": "~53.0.9",
     "expo-av": "~15.1.4",
     "expo-status-bar": "~2.2.3",
+
+    "lucide-react-native": "^0.511.0",
+    
+    "react-native-vector-icons": "^10.2.0"
+
     "expo-video": "~2.1.9",
     "prop-types": "^15.8.1",
     "react": "19.0.0",
@@ -30,6 +35,7 @@
     "react-native-screens": "~4.10.0",
     "react-native-video": "^6.14.1",
     "react-native-web": "^0.20.0"
+
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

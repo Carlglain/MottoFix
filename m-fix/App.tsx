@@ -1,4 +1,8 @@
 import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import EngineSound from './screens/diagnostics/EngineSound'
+import DashbordScan from './screens/diagnostics/DashboardScan'
+import DiagnosisResult from './screens/diagnostics/DiagnosisResult'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -22,6 +26,7 @@ const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
   return (
+
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
@@ -57,9 +62,9 @@ const TabNavigator = () => {
         }} 
       />
     </Tab.Navigator>
+
   );
 };
-
 export default function App() {
   return (
     <NavigationContainer>
