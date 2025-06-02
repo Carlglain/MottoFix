@@ -12,7 +12,11 @@
     "expo": "~53.0.9",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.2"
+    "react-native": "0.79.2",
+    "react-native-video": "^6.14.1",
+    "expo-av": "~15.1.4",
+    "expo-video": "~2.1.9",
+    "undefined": "react-native-vector-icons/Feather"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
