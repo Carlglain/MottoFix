@@ -187,26 +187,7 @@ const ProfilePage = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="home" size={24} color="#666" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="qr-code-scanner" size={24} color="#666" />
-          <Text style={styles.navText}>Scan</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="history" size={24} color="#666" />
-          <Text style={styles.navText}>History</Text>
-        </TouchableOpacity>
-        
-       
-      </View>
-       {/* <BottomNavBar/> */}
+     
     </SafeAreaView>
   );
 };

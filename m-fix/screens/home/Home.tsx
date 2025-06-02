@@ -38,7 +38,7 @@ const fetchLatestDiagnosis = async () => {
   });
 };
 
-export default function Home() {
+export default function Home({navigation}) {
   const [status, setStatus] = useState(null);
   const [diagnosis, setDiagnosis] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -87,8 +87,8 @@ export default function Home() {
     <TouchableOpacity><Ionicons name="notifications" size={24} color="white" /></TouchableOpacity>
     </View>
       <View style={styles.statusRow}>
-        <TouchableOpacity style={styles.statusBox} ><Text style={styles.statusValue}>Tap to scan</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.statusBox} ><Text style={styles.statusValue}>Tap to record</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.statusBox} onPress={()=>navigation.navigate('ScanDashboard')}><Text style={styles.statusValue}>Tap to scan</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.statusBox} onPress={()=>navigation.navigate('SoundScan')} ><Text style={styles.statusValue}>Tap to record</Text></TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.diagnosticButton}>

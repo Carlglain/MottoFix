@@ -62,10 +62,7 @@ export default function ScanDashboardLight() {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <ArrowLeft style={styles.arrowLeft} />
-        <Text style={styles.headerTitle}>Scan Dashboard Light</Text>
-      </View>
+      
 
       <ScrollView 
         style={styles.scrollContainer}
@@ -230,7 +227,7 @@ export default function ScanDashboardLight() {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <BottomNavigation />
+     
     </View>
   );
 }

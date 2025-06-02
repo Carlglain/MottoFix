@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import EngineSound from './screens/diagnostics/EngineSound'
-import DashbordScan from './screens/diagnostics/DashboardScan'
 import DiagnosisResult from './screens/diagnostics/DiagnosisResult'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -78,6 +77,8 @@ export default function App() {
         <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
+        <Stack.Screen name="ScanDashboard" component={DashboardScan} />
+        <Stack.Screen name='SoundScan' component={EngineSound} />
       </Stack.Navigator>
     </NavigationContainer>
   );

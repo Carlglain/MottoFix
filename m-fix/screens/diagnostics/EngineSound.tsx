@@ -61,10 +61,7 @@ export default function RecordEngineSound() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity>
-          <ArrowLeft style={styles.arrowLeft} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Record Engine Sound</Text>
+       
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -160,7 +157,7 @@ export default function RecordEngineSound() {
         )}
       </ScrollView>
 
-      <BottomNavigation />
+     
     </View>
   );
 }
