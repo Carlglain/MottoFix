@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import BottomNavBar from '../home/navbar';
 const VehicleStatus = () => {
   return (
     <ScrollView style={styles.container}>
@@ -57,6 +58,7 @@ const VehicleStatus = () => {
         style ={{width:100,borderRadius:2,height:50}}
         />
       </View>
+      {/* <BottomNavBar /> */}
     </ScrollView>
   );
 };

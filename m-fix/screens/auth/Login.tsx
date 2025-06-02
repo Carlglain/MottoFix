@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   View,
@@ -10,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-const Login = ({ navigation }) => {
+const LoginScreen = ({ navigation }) => {
   const [passwordVisible, setPasswordVisible] = useState(false);
 
   return (
@@ -43,7 +42,7 @@ const Login = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.loginButton}
-        onPress={() => navigation.navigate('HomeTabs')}
+        onPress={() => navigation.navigate('Home')}
       >
         <Text style={styles.loginButtonText}>Log in</Text>
       </TouchableOpacity>
@@ -56,10 +55,10 @@ const Login = ({ navigation }) => {
     }}
     style={styles.googleLogo}
   />
-   <Image
-            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }}
-            style={styles.googleIcon}
-          />
+  <Image
+                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }}
+                style={styles.googleIcon}
+              />
   <Text style={styles.googleText}>Sign in with Google</Text>
 </TouchableOpacity>
 
@@ -72,6 +71,7 @@ const Login = ({ navigation }) => {
       <Text style={styles.bottomText}>
         Don’t have an account? <Text style={styles.linkText}>Sign Up</Text>
       </Text>
+    </View>
   );
 };
 
@@ -146,12 +146,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
     justifyContent: 'center',
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-
   googleLogo: {
     width: 25,
     height: 25,
@@ -185,8 +179,13 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#4caf50',
-
     fontWeight: 'bold',
   },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
 });
-export default Login;
+
+export default LoginScreen;

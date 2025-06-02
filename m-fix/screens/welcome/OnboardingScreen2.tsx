@@ -30,12 +30,7 @@ const OnboardingScreen2 = ({ navigation }) => {
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.skipButton}
-        onPress={() => navigation.replace('HomeTabs')}
-      >
-        <Text style={styles.skipButtonText}>Skip</Text>
-      </TouchableOpacity>
+      
     </SafeAreaView>
   );
 };

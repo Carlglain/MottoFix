@@ -14,8 +14,8 @@ const OnboardingScreen = ({ navigation }) => {
       <Text style={styles.title}>Know Your Car, Drive Smart</Text>
 
       <Image
-        source={{ uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSizdPOV2bTU6tJCnLsLvlHH7HRuTMf68Ju9xEnori3nV4yBToUNCb3zPovugv_6aeCp7U&usqp=CAU' }}// Replace with your image URI or local asset
-        // style={styles.image}
+        source={require('../../assets/carimage.png')}
+        style={styles.image}
         resizeMode="cover"
       />
 
@@ -28,7 +28,7 @@ const OnboardingScreen = ({ navigation }) => {
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.skipButton}>
+      <TouchableOpacity onPress={()=>navigation.replace('HomeTabs')} style={styles.skipButton}>
         <Text style={styles.skipButtonText}>Skip</Text>
       </TouchableOpacity>
 

@@ -9,12 +9,12 @@ const tabs = [
   { name: 'Settings', icon: 'settings-outline' },
 ];
 
-export default function BottomNavBar() {
+export default function BottomNavBar({navigation}) {
   return (
     <View style={styles.navBar}>
       {tabs.map((tab, index) => (
-        <TouchableOpacity key={index} style={styles.tab}>
-          <Ionicons name={tab.icon} size={20} color="#9a9a9a" />
+        <TouchableOpacity   onPress={() => navigation.navigate(tab.name)}  key={index} style={styles.tab}>
+          <Ionicons name ={tab.icon} size={20} color="#9a9a9a" />
           <Text style={styles.tabText}>{tab.name}</Text>
         </TouchableOpacity>
       ))}
@@ -25,7 +25,7 @@ export default function BottomNavBar() {
 const styles = StyleSheet.create({
   navBar: {
     position: 'absolute',
-    bottom: 0,
+    bottom: -100,
     left: 0,
     right: 0,
     backgroundColor: '#1a2716',
@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 12,
+    // width:400,
   },
   tab: {
     alignItems: 'center',
