@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   View,
@@ -71,7 +72,6 @@ const Login = ({ navigation }) => {
       <Text style={styles.bottomText}>
         Don’t have an account? <Text style={styles.linkText}>Sign Up</Text>
       </Text>
-    </View>
   );
 };
 
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
     height: 20,
     marginRight: 10,
   },
-  
+
   googleLogo: {
     width: 25,
     height: 25,
@@ -185,8 +185,8 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: '#4caf50',
+
     fontWeight: 'bold',
   },
 });
-
 export default Login;
