@@ -206,7 +206,7 @@ const ProfilePage = ({ navigation }) => {
         
        
       </View>
-       <BottomNavBar/>
+       {/* <BottomNavBar/> */}
     </SafeAreaView>
   );
 };
