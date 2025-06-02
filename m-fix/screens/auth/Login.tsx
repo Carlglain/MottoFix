@@ -1,171 +1,195 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Contains most Lucide equivalents
 
-export default function LoginScreen() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Image
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const LoginScreen = ({ navigation }) => {
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   return (
     <View style={styles.container}>
-      {/* Globe icon in top right */}
-      <Pressable style={styles.globeIcon}>
-        <Icon name="earth" size={32} color="white" />
-      </Pressable>
+      <Ionicons name="globe-outline" size={18} color="#fff" style={styles.languageIcon} />
 
-      {/* Main content container */}
-      <View style={styles.contentContainer}>
-        {/* Welcome back heading */}
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Welcome back</Text>
-        </View>
+      <Text style={styles.title}>Welcome back</Text>
 
-        {/* Email input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#cbd5e0"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+      <TextInput placeholder="Email" placeholderTextColor="#ccc" style={styles.input} />
+
+      <View style={styles.passwordContainer}>
+        <TextInput
+          placeholder="Password"
+          placeholderTextColor="#ccc"
+          secureTextEntry={!passwordVisible}
+          style={styles.passwordInput}
+        />
+        <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+          <Ionicons
+            name={passwordVisible ? 'eye-off-outline' : 'eye-outline'}
+            size={22}
+            color="#ccc"
           />
-        </View>
-
-        {/* Password input */}
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={[styles.input, { paddingRight: 50 }]}
-            placeholder="Password"
-            placeholderTextColor="#cbd5e0"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-          />
-          <Pressable
-            style={styles.eyeIcon}
-            onPress={() => setShowPassword(!showPassword)}
-          >
-            <Icon 
-              name={showPassword ? "eye-off" : "eye"} 
-              size={24} 
-              color="#cbd5e0" 
-            />
-          </Pressable>
-        </View>
-
-        {/* Forgot password link */}
-        <Pressable style={styles.forgotPassword}>
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </Pressable>
-
-        {/* Log in button */}
-        <Pressable style={styles.loginButton}>
-          <Text style={styles.loginButtonText}>Log in</Text>
-        </Pressable>
-
-        {/* Bottom buttons */}
-        <View style={styles.bottomButtons}>
-          <Pressable style={styles.secondaryButton}>
-            <Icon name="google" size={20} color="white" style={styles.buttonIcon} />
-            <Text style={styles.secondaryButtonText}>Sign in with Google</Text>
-          </Pressable>
-          <Pressable style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>Sign up</Text>
-          </Pressable>
-        </View>
+        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity>
+        <Text style={styles.forgotText}>Forgot password?</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => navigation.navigate('Home')}
+      >
+        <Text style={styles.loginButtonText}>Log in</Text>
+      </TouchableOpacity>
+
+      <View style={styles.authOptions}>
+      <TouchableOpacity style={styles.googleButton}>
+  <Image
+    source={{
+      uri: 'https://www.transparentpng.com/thumb/google-logo/colorful-google-logo-transparent-clipart-download-u3DWLj.png',
+    }}
+    style={styles.googleLogo}
+  />
+  <Image
+                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }}
+                style={styles.googleIcon}
+              />
+  <Text style={styles.googleText}>Sign in with Google</Text>
+</TouchableOpacity>
+
+
+        <TouchableOpacity style={styles.signupButton}>
+          <Text style={styles.signupText}>Sign up</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.bottomText}>
+        Don’t have an account? <Text style={styles.linkText}>Sign Up</Text>
+      </Text>
     </View>
   );
-}
+};
+
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#3a4a3a",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 24,
+
+    backgroundColor: '#000',
+    padding: 20,
+    justifyContent: 'center',
   },
-  globeIcon: {
-    position: "absolute",
-    top: 24,
-    right: 24,
+  languageIcon: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
   },
-  contentContainer: {
-    width: "100%",
-    maxWidth: 384,
-    gap: 70,
-  },
-  header: {
-    marginBottom: 48,
-    alignItems: "center",
-  },
-  headerText: {
-    color: "white",
-    fontSize: 32,
-    fontWeight: "400",
-    letterSpacing: 0.5,
-  },
-  inputContainer: {
-    position: "relative",
+  title: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    alignSelf: 'center',
   },
   input: {
-    width: "100%",
-    height: 56,
-    backgroundColor: "#4a5a4a",
-    borderRadius: 16,
-    color: "white",
-    fontSize: 18,
-    paddingLeft: 24,
-    paddingRight: 24,
+    backgroundColor: '#2e3a1f',
+    color: '#fff',
+    borderRadius: 8,
+    padding: 14,
+    marginBottom: 15,
   },
-  eyeIcon: {
-    position: "absolute",
-    right: 16,
-    top: 16,
+  passwordContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2e3a1f',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    marginBottom: 10,
   },
-  forgotPassword: {
-    alignSelf: "flex-start",
+  passwordInput: {
+    flex: 1,
+    color: '#fff',
+    paddingVertical: 14,
   },
-  forgotPasswordText: {
-    color: "#cbd5e0",
-    fontSize: 16,
+  forgotText: {
+    color: '#aaa',
+    fontSize: 13,
+    marginBottom: 20,
   },
   loginButton: {
-    width: "100%",
-    height: 56,
-    backgroundColor: "#7cb342",
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#8bc34a',
+    paddingVertical: 14,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
   },
   loginButtonText: {
-    color: "black",
-    fontSize: 18,
-    fontWeight: "500",
-  },
-  bottomButtons: {
-    flexDirection: "row",
-    gap: 16,
-    paddingTop: 16,
-  },
-  secondaryButton: {
-    flex: 1,
-    height: 56,
-    backgroundColor: "#4a5a4a",
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    flexDirection: "row",
-  },
-  secondaryButtonText: {
-    color: "white",
+    color: '#000',
+    fontWeight: 'bold',
     fontSize: 16,
   },
-  buttonIcon: {
+  authOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2e3a1f',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    flex: 1,
     marginRight: 8,
+    justifyContent: 'center',
+  },
+  googleLogo: {
+    width: 25,
+    height: 25,
+    resizeMode: 'contain',
+    marginRight: 10,
+    marginLeft: 10,
+    fontSize: 200,
+  },
+  googleText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  
+  signupButton: {
+    backgroundColor: '#2e3a1f',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    justifyContent: 'center',
+  },
+  signupText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  bottomText: {
+    color: '#aaa',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 25,
+  },
+  linkText: {
+    color: '#4caf50',
+    fontWeight: 'bold',
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
   },
 });
+
+export default LoginScreen;
+
