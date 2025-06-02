@@ -74,7 +74,7 @@ const DiagnosticResults = () => {
         {/* Estimated Repair Cost */}
         <View style={styles.costContainer}>
           <Text style={styles.costLabel}>Estimated Repair Cost</Text>
-          <Text style={styles.costValue}>$200 - $500</Text>
+          <Text style={styles.costValue}>20k - 50k FCFA</Text>
         </View>
 
         {/* Action Buttons Row */}
