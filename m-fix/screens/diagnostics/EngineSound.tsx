@@ -12,7 +12,7 @@ import { ArrowLeft, Mic, BarChart3 } from 'lucide-react-native';
 import Button from '../../components/ui/button';
 import BottomNavigation from '../../navigation/BottomNavigation';
 
-export default function RecordEngineSound() {
+export default function RecordEngineSound({navigation}) {
   const [isRecording, setIsRecording] = useState(false);
   const [hasRecording, setHasRecording] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
@@ -146,7 +146,7 @@ export default function RecordEngineSound() {
                 A misfire occurs when one or more cylinders in your engine fail to ignite the air-fuel mixture properly. This can lead to reduced power, rough idling, and increased fuel consumption.
               </Text>
               <Button
-                onPress={() => console.log('Get Tutorial pressed')}
+                onPress={() => navigation.navigate('Results')}
                 variant="primary"
                 style={styles.getTutorialButton}
               >

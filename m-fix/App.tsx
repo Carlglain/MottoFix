@@ -71,7 +71,7 @@ export default function App() {
         <Stack.Screen name="Onboarding1" component={Welcome} />
         <Stack.Screen name="Onboarding2" component={Hero} />
         <Stack.Screen name="status" component={VehicleStatus} />
-        <Stack.Screen name="ContactMechanic" component={ContactMechanic} />
+        <Stack.Screen name="Mechanic" component={ContactMechanic} />
         <Stack.Screen name="Tutorials" component={Tutorials} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
@@ -79,6 +79,8 @@ export default function App() {
         <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="ScanDashboard" component={DashboardScan} />
         <Stack.Screen name='SoundScan' component={EngineSound} />
+        <Stack.Screen name='Results' component={DiagnosisResult} />
+        <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

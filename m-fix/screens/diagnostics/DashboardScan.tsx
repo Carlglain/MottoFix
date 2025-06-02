@@ -4,7 +4,7 @@ import { ArrowLeft, Camera, ImageIcon, Target, AlertTriangle } from 'lucide-reac
 import Button from '../../components/ui/button';
 import BottomNavigation from '../../navigation/BottomNavigation';
 
-export default function ScanDashboardLight() {
+export default function ScanDashboardLight({navigation}) {
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -214,9 +214,10 @@ export default function ScanDashboardLight() {
                 </Text>
 
                 <Button 
-                  onPress={() => setShowResults(false)}
+                  onPress={() => navigation.navigate('Results')}
                   variant="primary" 
                   style={styles.getTutorialButton}
+      
                 >
                   Get Tutorial
                 </Button>

@@ -93,15 +93,6 @@ export default function FindMechanicsScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Bottom Navigation */}
-      <View style={styles.navBar}>
-        {['Home', 'Scan', 'History', 'Settings'].map((tab, idx) => (
-          <Text key={idx} style={styles.navText}>
-            {tab}
-          </Text>
-        ))}
-      </View>
     </View>
   );
 }

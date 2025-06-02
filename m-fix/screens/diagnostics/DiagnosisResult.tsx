@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, StyleSheet, ScrollView } from 'rea
 import { ArrowLeft, Play } from 'lucide-react-native';
 import BottomNavigation from '../../navigation/BottomNavigation';
 
-const DiagnosticResults = () => {
+const DiagnosticResults = ({navigation}) => {
   const handleSaveReport = () => {
     console.log("Saving report...");
   };
@@ -27,12 +27,7 @@ const DiagnosticResults = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity>
-          <ArrowLeft size={24} color="white" style={styles.backIcon} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Diagnostic Results</Text>
-      </View>
+      
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* Main Diagnosis */}
@@ -89,8 +84,8 @@ const DiagnosticResults = () => {
 
         {/* Main Action Buttons */}
         <View style={styles.mainActions}>
-          <TouchableOpacity style={[styles.mainButton, styles.requestButton]} onPress={handleRequestMechanic}>
-            <Text style={[styles.mainButtonText, styles.requestButtonText]}>Request Mechanic</Text>
+          <TouchableOpacity style={[styles.mainButton, styles.requestButton]} onPress={() => navigation.navigate("Mechanic")}>
+            <Text style={[styles.mainButtonText, styles.requestButtonText]}>Contact Mechanic</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.mainButton, styles.tutorialButton]} onPress={handleViewTutorial}>
             <Text style={[styles.mainButtonText, styles.tutorialButtonText]}>View Tutorial</Text>
@@ -98,8 +93,8 @@ const DiagnosticResults = () => {
         </View>
       </ScrollView>
 
-      {/* Bottom Navigation */}
-      <BottomNavigation />
+    
+     
     </View>
   );
 };

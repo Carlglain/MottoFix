@@ -2,11 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import EvilIcons from '@expo/vector-icons/EvilIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
-const ContactMechanic = () => {
+const ContactMechanic = ({navigation}) => {
   return (
     <ScrollView style={styles.container}>
-    <View style={{flex:1,flexDirection:'row',justifyContent:'space-between', }}>
-     <Ionicons name="arrow-back" size={24} color="white" />
+    <View style={{flex:1,flexDirection:'row' }}>
+    
       <Text style={styles.header}>Contact Mechanic</Text>
     </View>
       <View style={styles.mechanicList}>
@@ -24,7 +24,7 @@ const ContactMechanic = () => {
         ))}
       </View>
 
-      <TouchableOpacity style={styles.button}>
+      <TouchableOpacity style={styles.button} onPress={()=>navigation.navigate('nearbymec')}>
         <Text style={styles.buttonText}>
           <EvilIcons name="location" size={24} color="black" /> Find Mechanics Near Me
         </Text>
