@@ -1,10 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
-import { ArrowLeft, Camera, ImageIcon, Target, AlertTriangle } from 'lucide-react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Camera, ImageIcon, Target, AlertTriangle, RotateCcw } from 'lucide-react-native';
 import Button from '../../components/ui/button';
 import BottomNavigation from '../../navigation/BottomNavigation';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function ScanDashboardLight({navigation}) {
+  // Camera states
+  const [facing, setFacing] = useState('back');
+  const [permission, requestPermission] = useCameraPermissions();
+  const cameraRef = useRef(null);
+  
+  // Existing states
   const [isCapturing, setIsCapturing] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
@@ -12,40 +21,193 @@ export default function ScanDashboardLight({navigation}) {
   const [analysisText, setAnalysisText] = useState('');
   const [showGallery, setShowGallery] = useState(false);
   const [showSavedPhotos, setShowSavedPhotos] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
+  const [activeButton, setActiveButton] = useState('camera'); // Track active button
   const [savedPhotos] = useState([
     { id: 1, uri: 'https://example.com/photo1.jpg' },
     { id: 2, uri: 'https://example.com/photo2.jpg' },
   ]);
 
-  const handleCapture = () => {
-    setIsCapturing(true);
-    setShowGallery(false);
-    setShowSavedPhotos(false);
+  // Camera permission check
+  if (!permission) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading camera...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-    setTimeout(() => {
-      setIsCapturing(false);
-      setIsProcessing(true);
-      setAnalysisText('Analyzing the dashboard light');
+  if (!permission.granted) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.permissionContainer}>
+          <Camera style={styles.permissionIcon} />
+          <Text style={styles.permissionTitle}>Camera Access Required</Text>
+          <Text style={styles.permissionMessage}>
+            We need your permission to use the camera for scanning dashboard lights
+          </Text>
+          <Button onPress={requestPermission} variant="primary" style={styles.permissionButton}>
+            Grant Camera Permission
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-      const progressInterval = setInterval(() => {
-        setProcessingProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            setIsProcessing(false);
-            setShowResults(true);
-            return 100;
-          }
-          return prev + 10;
-        });
-      }, 200);
-    }, 1000);
+  // Toggle camera facing (front/back)
+  const toggleCameraFacing = () => {
+    setFacing(current => (current === 'back' ? 'front' : 'back'));
   };
 
-  const handleGallery = () => {
-    setShowGallery(true);
-    setShowSavedPhotos(false);
-    setShowResults(false);
-    setIsProcessing(false);
+  // Handle gallery selection
+  const handleGallery = async () => {
+    setActiveButton('gallery');
+    try {
+      // Request media library permissions
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert(
+          'Permission Required',
+          'We need access to your photo library to select images.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Go to Settings', 
+              onPress: () => {
+                // You can use Linking.openSettings() here if needed
+                Alert.alert('Please enable photo library access in your device settings.');
+              }
+            }
+          ]
+        );
+        setActiveButton('camera');
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        setSelectedGalleryImage(selectedImage.uri);
+        setCapturedImage(selectedImage.uri);
+        setShowGallery(false);
+        setShowSavedPhotos(false);
+        
+        // Start processing the selected image
+        processSelectedImage(selectedImage.uri);
+      } else {
+        setActiveButton('camera');
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to access photo library');
+      setActiveButton('camera');
+    }
+  };
+
+  // Process selected image (same as camera capture)
+  const processSelectedImage = (imageUri) => {
+    setIsProcessing(true);
+    setAnalysisText('Analyzing the selected image');
+    setProcessingProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setProcessingProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(progressInterval);
+          setIsProcessing(false);
+          setShowResults(true);
+          return 100;
+        }
+        return prev + 10;
+      });
+    }, 200);
+  };
+
+  // Handle camera button - either capture or retake
+  const handleCameraButton = async () => {
+    // If there's a captured image, act as retake button
+    if (capturedImage) {
+      resetCapture();
+      setActiveButton('camera');
+      return;
+    }
+
+    // Otherwise, capture photo
+    // if (!cameraRef.current) {
+    //   Alert.alert('Error', 'Camera is not ready');
+    //   return;
+    // }
+
+    try {
+      setIsCapturing(true);
+      setShowGallery(false);
+      setShowSavedPhotos(false);
+      setActiveButton('camera');
+
+      // Take picture
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: false,
+        exif: false,
+      });
+
+      setCapturedImage(photo.uri);
+      setSelectedGalleryImage(null); // Clear any gallery selection
+      
+      // Start processing simulation
+      setTimeout(() => {
+        setIsCapturing(false);
+        setIsProcessing(true);
+        setAnalysisText('Analyzing the dashboard light');
+
+        const progressInterval = setInterval(() => {
+          setProcessingProgress((prev) => {
+            if (prev >= 100) {
+              clearInterval(progressInterval);
+              setIsProcessing(false);
+              setShowResults(true);
+              return 100;
+            }
+            return prev + 10;
+          });
+        }, 200);
+      }, 1000);
+
+    } catch (error) {
+      // console.error('Error taking picture:', error);
+      // Alert.alert('Error', 'Failed to capture image');
+      setIsCapturing(false);
+      setActiveButton('camera');
+    }
+  };
+
+  // Show gallery options
+  const showGalleryOptions = () => {
+    Alert.alert(
+      'Select Image Source',
+      'Choose how you want to select an image',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Photo Library', onPress: handleGallery },
+        { text: 'Take Photo', onPress: () => {
+          // Reset to camera mode
+          setShowGallery(false);
+          setShowSavedPhotos(false);
+          setActiveButton('camera');
+        }}
+      ]
+    );
   };
 
   const handleSavedPhotos = () => {
@@ -53,17 +215,31 @@ export default function ScanDashboardLight({navigation}) {
     setShowGallery(false);
     setShowResults(false);
     setIsProcessing(false);
+    setActiveButton('saved');
   };
 
-  const handleFocus = () => {
-    console.log('Focusing camera...');
+  const resetCapture = () => {
+    setCapturedImage(null);
+    setSelectedGalleryImage(null);
+    setShowResults(false);
+    setIsProcessing(false);
+    setProcessingProgress(0);
+    setShowSavedPhotos(false);
+  };
+
+  // Get the current image source info
+  const getImageSourceInfo = () => {
+    if (selectedGalleryImage) {
+      return 'Image selected from gallery';
+    } else if (capturedImage) {
+      return 'Image captured successfully!';
+    } else {
+      return 'Point your camera at the dashboard light';
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      
-
+    <SafeAreaView style={styles.container}>
       <ScrollView 
         style={styles.scrollContainer}
         contentContainerStyle={styles.scrollContent}
@@ -72,42 +248,47 @@ export default function ScanDashboardLight({navigation}) {
         <View style={styles.cameraInterface}>
           {/* Camera Controls */}
           <View style={styles.cameraControls}>
-            <TouchableOpacity onPress={handleGallery} style={styles.galleryButton}>
-              <ImageIcon style={styles.galleryIcon} />
+            <TouchableOpacity 
+              onPress={showGalleryOptions} 
+              style={[
+                styles.galleryButton,
+                activeButton === 'gallery' && styles.activeButton
+              ]}
+            >
+              <ImageIcon style={[
+                styles.galleryIcon,
+                activeButton === 'gallery' && styles.activeIcon
+              ]} />
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={handleCapture}
+              onPress={handleCameraButton}
               disabled={isCapturing || isProcessing}
               style={[
                 styles.captureButton,
                 isCapturing ? styles.recordingCapture : styles.pausedCapture,
+                activeButton === 'camera' && styles.activeCaptureButton
               ]}
             >
-              <Camera style={styles.cameraControlIcon} />
+              <Camera style={[
+                styles.cameraControlIcon,
+                activeButton === 'camera' && styles.activeIcon
+              ]} />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={handleSavedPhotos} style={styles.focusButton}>
-              <Target style={styles.focusIcon} />
+            <TouchableOpacity 
+              onPress={handleSavedPhotos} 
+              style={[
+                styles.focusButton,
+                activeButton === 'saved' && styles.activeButton
+              ]}
+            >
+              <Target style={[
+                styles.focusIcon,
+                activeButton === 'saved' && styles.activeIcon
+              ]} />
             </TouchableOpacity>
           </View>
-
-          {/* Gallery View */}
-          {showGallery && (
-            <View style={styles.galleryContainer}>
-              <Text style={styles.sectionTitle}>Select from Gallery</Text>
-              <View style={styles.galleryGrid}>
-                {[1, 2, 3, 4].map((item) => (
-                  <View key={item} style={styles.galleryItem}>
-                    <Image 
-                      source={{ uri: 'https://via.placeholder.com/150' }} 
-                      style={styles.galleryImage} 
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
 
           {/* Saved Photos View */}
           {showSavedPhotos && (
@@ -116,12 +297,22 @@ export default function ScanDashboardLight({navigation}) {
               {savedPhotos.length > 0 ? (
                 <View style={styles.galleryGrid}>
                   {savedPhotos.map((photo) => (
-                    <View key={photo.id} style={styles.galleryItem}>
+                    <TouchableOpacity 
+                      key={photo.id} 
+                      style={styles.galleryItem}
+                      onPress={() => {
+                        setCapturedImage(photo.uri);
+                        setSelectedGalleryImage(photo.uri);
+                        setShowSavedPhotos(false);
+                        setActiveButton('camera');
+                        processSelectedImage(photo.uri);
+                      }}
+                    >
                       <Image 
                         source={{ uri: photo.uri }} 
                         style={styles.galleryImage} 
                       />
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               ) : (
@@ -130,27 +321,49 @@ export default function ScanDashboardLight({navigation}) {
             </View>
           )}
 
-          {/* Camera Viewfinder */}
-          {!showGallery && !showSavedPhotos && (
+          {/* Live Camera View or Captured Image */}
+          {!showSavedPhotos && (
             <View style={styles.cameraViewfinder}>
-              <View style={styles.viewfinderContainer}>
-                {isCapturing && (
-                  <View
-                    style={[
-                      styles.viewfinderOverlay,
-                      {
-                        opacity: isCapturing ? 1 : 0,
-                        transform: [
-                          {
-                            scale: isCapturing ? 1 : 0.5,
-                          },
-                        ],
-                      },
-                    ]}
-                  />
-                )}
-                <Camera style={styles.viewfinderCameraIcon} />
-              </View>
+              {capturedImage ? (
+                // Show captured image
+                <View style={styles.capturedImageContainer}>
+                  <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
+                  <TouchableOpacity onPress={resetCapture} style={styles.retakeButton}>
+                    <RotateCcw style={styles.retakeIcon} />
+                    <Text style={styles.retakeText}>
+                      {selectedGalleryImage ? 'Choose Again' : 'Retake'}
+                    </Text>
+                  </TouchableOpacity>
+                  {selectedGalleryImage && (
+                    <View style={styles.galleryBadge}>
+                      <ImageIcon style={styles.galleryBadgeIcon} />
+                      <Text style={styles.galleryBadgeText}>From Gallery</Text>
+                    </View>
+                  )}
+                </View>
+              ) : (
+                // Show live camera feed
+                <CameraView
+                  ref={cameraRef}
+                  style={styles.camera}
+                  facing={facing}
+                >
+                  {/* Camera overlay with flip button */}
+                  <View style={styles.cameraOverlay}>
+                    <TouchableOpacity 
+                      onPress={toggleCameraFacing} 
+                      style={styles.flipButton}
+                    >
+                      <RotateCcw style={styles.flipIcon} />
+                    </TouchableOpacity>
+                    
+                    {/* Viewfinder overlay */}
+                    <View style={styles.viewfinderOverlay}>
+                      <View style={styles.scanFrame} />
+                    </View>
+                  </View>
+                </CameraView>
+              )}
             </View>
           )}
 
@@ -159,20 +372,32 @@ export default function ScanDashboardLight({navigation}) {
         </View>
 
         {/* Instructions and Controls */}
-        {!showGallery && !showSavedPhotos && (
+        {!showSavedPhotos && (
           <View style={styles.instructionsAndControls}>
             <View style={styles.captureInstructions}>
               <Text style={styles.captureInstructionsText}>
-                Point your camera at the dashboard light
+                {getImageSourceInfo()}
               </Text>
-              <Button
-                onPress={handleCapture}
-                disabled={isCapturing || isProcessing}
-                variant="primary"
-                style={styles.fullWidthCaptureButton}
-              >
-                {isCapturing ? 'Capturing...' : 'Capture'}
-              </Button>
+              {!capturedImage && (
+                <View style={styles.actionButtonsContainer}>
+                  <Button
+                    onPress={handleCameraButton}
+                    disabled={isCapturing || isProcessing}
+                    variant="primary"
+                    style={[styles.actionButton, styles.captureActionButton]}
+                  >
+                    {isCapturing ? 'Capturing...' : 'Take Photo'}
+                  </Button>
+                  <Button
+                    onPress={handleGallery}
+                    disabled={isCapturing || isProcessing}
+                    variant="secondary"
+                    style={[styles.actionButton, styles.galleryActionButton]}
+                  >
+                    Choose from Gallery
+                  </Button>
+                </View>
+              )}
             </View>
 
             {/* Processing Section */}
@@ -217,7 +442,6 @@ export default function ScanDashboardLight({navigation}) {
                   onPress={() => navigation.navigate('Results')}
                   variant="primary" 
                   style={styles.getTutorialButton}
-      
                 >
                   Get Tutorial
                 </Button>
@@ -226,17 +450,14 @@ export default function ScanDashboardLight({navigation}) {
           </View>
         )}
       </ScrollView>
-
-      {/* Bottom Navigation */}
-     
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C240F',
+    backgroundColor: '#000',
   },
   scrollContainer: {
     flex: 1,
@@ -244,24 +465,49 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 80, // Space for navbar
   },
-  header: {
-    flexDirection: 'row',
+  
+  // Permission screens
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingHorizontal: 16,
-    paddingTop: 16,
   },
-  arrowLeft: {
-    width: 24,
-    height: 24,
-    marginRight: 12,
+  loadingText: {
     color: '#fff',
+    fontSize: 16,
   },
-  headerTitle: {
-    fontSize: 20,
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  permissionIcon: {
+    width: 64,
+    height: 64,
+    color: '#5A7D28',
+    marginBottom: 24,
+  },
+  permissionTitle: {
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    marginBottom: 16,
+    textAlign: 'center',
   },
+  permissionMessage: {
+    fontSize: 16,
+    color: '#ccc',
+    textAlign: 'center',
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  permissionButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+  },
+
+  // Camera interface
   cameraInterface: {
     flex: 1,
   },
@@ -270,7 +516,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
-    paddingHorizontal: 30, // Closer spacing
+    paddingHorizontal: 30,
   },
   galleryButton: {
     width: 40,
@@ -317,32 +563,123 @@ const styles = StyleSheet.create({
     height: 24,
     color: '#fff',
   },
+
+  // Active button styles
+  activeButton: {
+    backgroundColor: '#D32F2F',
+    borderWidth: 2,
+    borderColor: '#FF4444',
+  },
+  activeCaptureButton: {
+    backgroundColor: '#D32F2F',
+    borderWidth: 2,
+    borderColor: '#FF4444',
+  },
+  activeIcon: {
+    backgroundColor: '#FF4444',
+  },
+
+  // Camera viewfinder
   cameraViewfinder: {
-    flex: 1,
+    height: 400,
     backgroundColor: '#2C3A0F',
     marginHorizontal: 16,
     borderRadius: 8,
     overflow: 'hidden',
-    aspectRatio: 1, // Square viewfinder
   },
-  viewfinderContainer: {
+  camera: {
+    flex: 1,
+  },
+  cameraOverlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  flipButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  flipIcon: {
+    width: 20,
+    height: 20,
+    color: '#fff',
+  },
+  viewfinderOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  viewfinderOverlay: {
+  scanFrame: {
+    width: 200,
+    height: 200,
+    borderWidth: 2,
+    borderColor: '#5A7D28',
+    borderRadius: 8,
+    backgroundColor: 'transparent',
+  },
+
+  // Captured image display
+  capturedImageContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  capturedImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  retakeButton: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    top: 16,
+    right: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  viewfinderCameraIcon: {
-    width: 100,
-    height: 100,
-    color: '#5A7D28',
+  retakeIcon: {
+    width: 16,
+    height: 16,
+    color: '#fff',
+    marginRight: 4,
   },
+  retakeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  galleryBadge: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(90, 125, 40, 0.9)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  galleryBadgeIcon: {
+    width: 12,
+    height: 12,
+    color: '#fff',
+    marginRight: 4,
+  },
+  galleryBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+
   indicatorLine: {
     width: 4,
     height: 100,
@@ -353,6 +690,8 @@ const styles = StyleSheet.create({
     left: 16,
     marginTop: -50,
   },
+
+  // Instructions and controls
   instructionsAndControls: {
     padding: 16,
   },
@@ -362,15 +701,28 @@ const styles = StyleSheet.create({
   captureInstructionsText: {
     fontSize: 16,
     color: '#fff',
-    marginBottom: 8,
+    marginBottom: 12,
     textAlign: 'center',
   },
-  fullWidthCaptureButton: {
+  actionButtonsContainer: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  actionButton: {
     width: '100%',
-    padding: 16,
+    padding: 12,
     borderRadius: 8,
+  },
+  captureActionButton: {
     backgroundColor: '#5A7D28',
   },
+  galleryActionButton: {
+    backgroundColor: '#3A4A1D',
+    borderWidth: 1,
+    borderColor: '#5A7D28',
+  },
+
+  // Processing section
   processingSection: {
     marginTop: 16,
   },
@@ -399,6 +751,8 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
   },
+
+  // Results section
   resultsSection: {
     marginTop: 16,
   },
@@ -446,6 +800,8 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#5A7D28',
   },
+
+  // Gallery sections
   galleryContainer: {
     marginHorizontal: 16,
     marginBottom: 20,

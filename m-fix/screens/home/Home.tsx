@@ -126,7 +126,7 @@ export default function Home({navigation}) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111c10',
+    backgroundColor: '#000',
     padding: 25,
   },
   loadingContainer: {

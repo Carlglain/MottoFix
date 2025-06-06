@@ -195,7 +195,7 @@ const ProfilePage = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#2D4A3E',
+    backgroundColor: '#000',
   },
   header: {
     flexDirection: 'row',

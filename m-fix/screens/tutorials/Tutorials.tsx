@@ -77,7 +77,7 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: '#000',
     padding: 20,
   },
   header: {
