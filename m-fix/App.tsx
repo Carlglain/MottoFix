@@ -19,6 +19,8 @@ import ContactMechanic from './screens/contact mechanic/ContactMechanic';
 import Tutorials from './screens/tutorials/Tutorials';
 import Home from './screens/home/Home';
 import { Ionicons } from '@expo/vector-icons'; // Ensure you have this installed
+import Test from './screens/diagnostics/test';
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -29,7 +31,8 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { position: 'absolute', bottom: 0, left: 0, right: 0 },
+        tabBarStyle: { position: 'absolute', bottom: 0, left: 0, right: 0 ,backgroundColor:"#333"},tabBarActiveTintColor: '#fff',     // Text color when tab is active
+    tabBarInactiveTintColor: '#888',
       }}
     >
       <Tab.Screen 
@@ -68,20 +71,22 @@ export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Onboarding1">
-        <Stack.Screen name="Onboarding1" component={Welcome} />
-        <Stack.Screen name="Onboarding2" component={Hero} />
+        <Stack.Screen name="Onboarding1" component={Welcome} options={{ headerShown: false }}  />
+        <Stack.Screen name="Onboarding2" component={Hero} options={{ headerShown: false }} />
         <Stack.Screen name="status" component={VehicleStatus} />
         <Stack.Screen name="Mechanic" component={ContactMechanic} />
-        <Stack.Screen name="Tutorials" component={Tutorials} />
+        <Stack.Screen name="Tutorials" component={Tutorials}  />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
-        <Stack.Screen name="ScanDashboard" component={DashboardScan} />
+        <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
         <Stack.Screen name='SoundScan' component={EngineSound} />
         <Stack.Screen name='Results' component={DiagnosisResult} />
         <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
       </Stack.Navigator>
     </NavigationContainer>
+   
   );
 }
+

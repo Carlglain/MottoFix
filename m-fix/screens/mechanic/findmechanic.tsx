@@ -100,7 +100,7 @@ export default function FindMechanicsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#111c10',
+    backgroundColor: '#000',
     paddingTop: 20,
     paddingHorizontal: 16,
   },

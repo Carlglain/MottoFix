@@ -102,7 +102,7 @@ const DiagnosticResults = ({navigation}) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1C240F', // gray-900 equivalent
+    backgroundColor: '#000', // gray-900 equivalent
     paddingBottom: 80,
   },
   header: {
