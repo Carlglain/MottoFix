@@ -25,7 +25,7 @@ const OnboardingScreen2 = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.nextButton}
-        onPress={() => navigation.replace('HomeTabs')} // Navigate to dashboard
+        onPress={() => navigation.navigate('Login')} // Navigate to dashboard
       >
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
