@@ -1,278 +1,457 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Animated,
-  Easing,
-} from 'react-native';
-import { ArrowLeft, Mic, BarChart3 } from 'lucide-react-native';
-import Button from '../../components/ui/button';
-import BottomNavigation from '../../navigation/BottomNavigation';
+import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function RecordEngineSound({navigation}) {
-  const [isRecording, setIsRecording] = useState(false);
-  const [hasRecording, setHasRecording] = useState(false);
-  const animation = useRef(new Animated.Value(0)).current;
+export default function EngineSound({navigateTo}:{navigateTo:(screenName: string, params?: {}) => void}) {
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [recording, setRecording] = useState<any>(null);
+  const [recordingStatus, setRecordingStatus] = useState('idle'); // 'idle', 'recording', 'stopped'
+  const [audioUri, setAudioUri] = useState<any>(null);
+  const [sound, setSound] = useState<any>(null);
+  const [playbackStatus, setPlaybackStatus] = useState('idle');
 
-  const startWaveAnimation = () => {
-    animation.setValue(0);
-    Animated.loop(
-      Animated.timing(animation, {
-        toValue: 1,
-        duration: 2000,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
+  const handleToggleRecording = () => {
+    setIsRecording(!isRecording);
+    // Implement stop recording logic
+    isRecording?console.log('Stopped recording'):console.log('Started recording');
   };
 
-  const stopWaveAnimation = () => {
-    animation.stopAnimation();
-  };
+  async function startRecording() {
+    try {
+      // 1. Request microphone permissions
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        alert('Permission to access microphone is required!');
+        return;
+      }
 
-  const handleRecord = () => {
-    setIsRecording(true);
-    startWaveAnimation();
-    setTimeout(() => {
-      setIsRecording(false);
-      setHasRecording(true);
-      stopWaveAnimation();
-    }, 3000);
-  };
+      // 2. Configure audio mode for recording
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false, // Set to true if you need background recording
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
 
-  const handleStop = () => {
-    setIsRecording(false);
-    stopWaveAnimation();
-  };
+      // 3. Create a new Audio.Recording instance and prepare it
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      setRecordingStatus('recording');
+      console.log('Recording started');
 
-  const handlePlayback = () => {
-    console.log('Playing back recording...');
-  };
+    } catch (err) {
+      console.error('Failed to start recording', err);
+      setRecordingStatus('idle');
+    }
+  }
 
-  const waveTranslateX = animation.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -40], // Adjust based on number and spacing of bars
-  });
+  async function stopRecording() {
+    setRecordingStatus('stopped');
+    console.log('Stopping recording');
+
+    if (!recording) return; // Ensure recording object exists
+
+    try {
+      // 1. Stop and unload the recording
+      await recording.stopAndUnloadAsync();
+
+      // 2. Get the URI of the recorded file
+      const uri = recording.getURI();
+      setAudioUri(uri);
+      console.log('Recording stopped and stored at', uri);
+
+      // 3. Reset recording state
+      setRecording(null);
+
+      // 4. Set audio mode back to non-recording (optional, but good practice)
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: true, // Allow sound to play through earpiece
+      });
+
+    } catch (error) {
+      console.error('Failed to stop recording', error);
+    }
+  }
+
+  async function playSound() {
+    if (!audioUri) {
+      alert('No audio recorded yet!');
+      return;
+    }
+    if (sound) {
+      // If sound is already loaded, just play it
+      await sound.replayAsync();
+      setPlaybackStatus('playing');
+      return;
+    }
+
+    try {
+      // 1. Load the recorded sound
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: audioUri },
+        { shouldPlay: true },
+        (status) => {
+          if (status.isLoaded && !status.isPlaying && status.positionMillis > 0) {
+            setPlaybackStatus('idle'); // Reset status when playback finishes
+            newSound.unloadAsync(); // Unload sound when finished (optional)
+            setSound(null); // Clear sound object
+          }
+        }
+      );
+      setSound(newSound);
+      setPlaybackStatus('playing');
+      console.log('Playing sound');
+
+    } catch (error) {
+      console.error('Failed to play sound', error);
+      setPlaybackStatus('idle');
+    }
+  }
+
+  async function pauseSound() {
+    if (sound && playbackStatus === 'playing') {
+      await sound.pauseAsync();
+      setPlaybackStatus('paused');
+      console.log('Sound paused');
+    }
+  }
+
+  async function resumeSound() {
+    if (sound && playbackStatus === 'paused') {
+      await sound.playAsync();
+      setPlaybackStatus('playing');
+      console.log('Sound resumed');
+    }
+  }
+
+  React.useEffect(() => {
+    // Unload the sound when the component unmounts
+    return sound
+      ? () => {
+          console.log('Unloading Sound');
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.recordSoundContainer}>
+      <StatusBar style="light" />
+      
       {/* Header */}
       <View style={styles.header}>
-       
+        <TouchableOpacity style={styles.backButton} onPress={() => navigateTo('CarOwnerDashboard')}>
+          <Ionicons name="chevron-back" size={28} color="#A4D65E" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Engine Diagnostics</Text>
+        <View style={styles.headerSpacer} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Description */}
-        <View style={styles.description}>
-          <Text style={styles.descriptionText}>
-            Capture the sound of your engine to diagnose potential issues. Ensure the environment is quiet for accurate results.
-          </Text>
-        </View>
-
+      <View style={styles.recordSoundContent}>
         {/* Recording Section */}
         <View style={styles.recordingSection}>
-          <View style={styles.recordingSectionHeader}>
-            <Text style={styles.recordingSectionHeaderText}>Recording</Text>
-            <Mic style={styles.microphoneIcon} color={isRecording ? 'red' : '#666'} />
-          </View>
-
-          <View style={styles.recordingSectionHeader}>
-            <Text style={styles.recordingSectionHeaderText}>Sound Wave Visualizer</Text>
-            <BarChart3 style={styles.barChartIcon} color="#666" />
-          </View>
-
-          {/* Sound Wave Animation */}
-          <View style={styles.soundWaveVisualization}>
-            <Animated.View
-              style={[
-                styles.soundWaveVisualizationContainer,
-                { transform: [{ translateX: waveTranslateX }] },
-              ]}
-            >
-              {Array.from({ length: 40 }, (_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.soundWaveBar,
-                    { height: Math.random() * 80 + 20 }, // Simulate wave
-                  ]}
+          <View style={styles.recordSoundIconContainer}>
+            <View style={styles.innerCircle}>
+              {recordingStatus === 'recording' ? (
+                <MaterialCommunityIcons 
+                  name="waveform" 
+                  size={80} 
+                  color="#A4D65E" 
+                  style={styles.micIcon} 
                 />
-              ))}
-            </Animated.View>
+              ) : (
+                <MaterialIcons 
+                  name="mic" 
+                  size={80} 
+                  color="#A4D65E" 
+                  style={styles.micIcon} 
+                />
+              )}
+            </View>
+            {recordingStatus === 'recording' && (
+              <View style={styles.recordingPulse} />
+            )}
           </View>
+          
+          <Text style={styles.recordingText}>
+            {recordingStatus === 'recording' ? "Recording Engine Sound..." : "Ready to Record"}
+          </Text>
+          
+          <Text style={styles.subtitleText}>
+            {recordingStatus === 'recording' 
+              ? "Capturing audio for analysis" 
+              : "Tap to start engine sound recording"
+            }
+          </Text>
 
-          {/* Controls */}
-          <View style={styles.controlButtons}>
-            <Button
-              onPress={handleRecord}
-              disabled={isRecording}
-              variant="primary"
-              style={styles.controlButton}
-            >
-              {isRecording ? 'Recording...' : 'Record'}
-            </Button>
-            <Button
-              onPress={handleStop}
-              disabled={!isRecording}
-              variant="secondary"
-              style={styles.controlButton}
-            >
-              Stop
-            </Button>
-            <Button
-              onPress={handlePlayback}
-              disabled={!hasRecording || isRecording}
-              variant="secondary"
-              style={styles.controlButton}
-            >
-              Playback
-            </Button>
-          </View>
+          <TouchableOpacity 
+            style={[
+              styles.recordButton, 
+              recordingStatus === 'recording' && styles.recordButtonActive
+            ]} 
+            onPress={recordingStatus === 'recording' ? stopRecording : startRecording}
+          >
+            <Text style={[
+              styles.recordButtonText,
+              recordingStatus === 'recording' && styles.recordButtonTextActive
+            ]}>
+              {recordingStatus === 'recording' ? "Stop Recording" : "Start Recording"}
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Diagnosis Section */}
-        {hasRecording && (
-          <View style={styles.diagnosisSection}>
-            <Text style={styles.diagnosisSectionTitle}>Diagnosis</Text>
-            <View style={styles.diagnosisSectionContent}>
-              <View style={styles.diagnosisSectionFaultType}>
-                <Text style={styles.diagnosisSectionFaultTypeText}>Fault Type: Misfire</Text>
-                <Text style={styles.diagnosisSectionFaultTypeConfidence}>85% Confidence</Text>
-              </View>
-              <Text style={styles.diagnosisSectionDescription}>
-                A misfire occurs when one or more cylinders in your engine fail to ignite the air-fuel mixture properly. This can lead to reduced power, rough idling, and increased fuel consumption.
+        {/* Playback Controls */}
+        {audioUri && (
+          <View style={styles.playbackSection}>
+            <View style={styles.divider} />
+            
+            <Text style={styles.playbackTitle}>Audio Analysis</Text>
+            <Text style={styles.playbackSubtitle}>Review your recorded engine sound</Text>
+            
+            <View style={styles.playbackControls}>
+              {playbackStatus === 'playing' ? (
+                <TouchableOpacity style={styles.controlButton} onPress={pauseSound}>
+                  <Ionicons name="pause" size={24} color="#000" />
+                  <Text style={styles.controlButtonText}>Pause</Text>
+                </TouchableOpacity>
+              ) : playbackStatus === 'paused' ? (
+                <TouchableOpacity style={styles.controlButton} onPress={resumeSound}>
+                  <Ionicons name="play" size={24} color="#000" />
+                  <Text style={styles.controlButtonText}>Resume</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.controlButton} onPress={playSound}>
+                  <Ionicons name="play" size={24} color="#000" />
+                  <Text style={styles.controlButtonText}>Play Audio</Text>
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity style={styles.diagnoseButton}>
+                <MaterialIcons name="analytics" size={24} color="#000" />
+                <Text style={styles.diagnoseButtonText}>Analyze Engine</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.statusContainer}>
+              <View style={[
+                styles.statusIndicator, 
+                playbackStatus === 'playing' && styles.statusIndicatorActive
+              ]} />
+              <Text style={styles.statusText}>
+                Status: {playbackStatus.charAt(0).toUpperCase() + playbackStatus.slice(1)}
               </Text>
-              <Button
-                onPress={() => navigation.navigate('Results')}
-                variant="primary"
-                style={styles.getTutorialButton}
-              >
-                Get Tutorial
-              </Button>
             </View>
           </View>
         )}
-      </ScrollView>
-
-     
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
-  container: {
+  recordSoundContainer: {
     flex: 1,
-    backgroundColor: '#121212',
-    padding: 16,
+    backgroundColor: '#0A0A0A',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
   },
-  arrowLeft: {
-    width: 24,
-    height: 24,
-    marginRight: 8,
+  backButton: {
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#fff',
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
-  content: {
+  headerSpacer: {
+    width: 44,
+  },
+  recordSoundContent: {
     flex: 1,
-  },
-  description: {
-    marginBottom: 16,
-  },
-  descriptionText: {
-    fontSize: 16,
-    color: '#aaa',
+    paddingHorizontal: 20,
   },
   recordingSection: {
-    marginBottom: 16,
-  },
-  recordingSectionHeader: {
-    flexDirection: 'row',
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 40,
+  },
+  recordSoundIconContainer: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#A4D65E',
+    borderRadius: 100,
+    backgroundColor: '#1A1A1A',
+    marginBottom: 30,
+    position: 'relative',
+    shadowColor: '#A4D65E',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  innerCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#0F0F0F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2A2A2A',
+  },
+  recordingPulse: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 2,
+    borderColor: '#A4D65E',
+    opacity: 0.3,
+  },
+  micIcon: {
+    alignSelf: 'center',
+  },
+  recordingText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  recordingSectionHeaderText: {
+  subtitleText: {
     fontSize: 16,
-    marginRight: 8,
-    color: '#fff',
+    color: '#888888',
+    marginBottom: 40,
+    textAlign: 'center',
+    lineHeight: 22,
   },
-  microphoneIcon: {
-    width: 24,
-    height: 24,
+  recordButton: {
+    backgroundColor: '#A4D65E',
+    width: width * 0.8,
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    shadowColor: '#A4D65E',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  barChartIcon: {
-    width: 24,
-    height: 24,
+  recordButtonActive: {
+    backgroundColor: '#FF4444',
+    shadowColor: '#FF4444',
   },
-  soundWaveVisualization: {
-    height: 100,
-    overflow: 'hidden',
-    marginBottom: 16,
+  recordButtonText: {
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
-  soundWaveVisualizationContainer: {
-    flexDirection: 'row',
-    width: 1000,
+  recordButtonTextActive: {
+    color: '#FFFFFF',
   },
-  soundWaveBar: {
-    width: 6,
-    marginRight: 4,
-    backgroundColor: 'lime',
-    borderRadius: 2,
+  playbackSection: {
+    paddingBottom: 30,
   },
-  controlButtons: {
+  divider: {
+    height: 1,
+    backgroundColor: '#2A2A2A',
+    marginVertical: 30,
+  },
+  playbackTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  playbackSubtitle: {
+    fontSize: 16,
+    color: '#888888',
+    marginBottom: 25,
+    textAlign: 'center',
+  },
+  playbackControls: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 8,
-    marginTop: 12,
+    marginBottom: 20,
+    gap: 12,
   },
   controlButton: {
     flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  diagnosisSection: {
-    marginBottom: 16,
-  },
-  diagnosisSectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#fff',
-  },
-  diagnosisSectionContent: {
-    marginBottom: 16,
-  },
-  diagnosisSectionFaultType: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'center',
+    backgroundColor: '#A4D65E',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
   },
-  diagnosisSectionFaultTypeText: {
+  controlButtonText: {
+    color: '#000000',
     fontSize: 16,
-    marginRight: 8,
-    color: '#fff',
+    fontWeight: '600',
   },
-  diagnosisSectionFaultTypeConfidence: {
+  diagnoseButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#7ED321',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  diagnoseButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 15,
+    gap: 8,
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#444444',
+  },
+  statusIndicatorActive: {
+    backgroundColor: '#A4D65E',
+  },
+  statusText: {
     fontSize: 14,
-    color: 'lime',
-  },
-  diagnosisSectionDescription: {
-    fontSize: 16,
-    color: '#aaa',
-    marginBottom: 16,
-  },
-  getTutorialButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
+    color: '#CCCCCC',
+    fontWeight: '500',
   },
 });

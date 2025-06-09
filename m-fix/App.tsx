@@ -81,7 +81,7 @@ export default function App() {
         <Stack.Screen name="SignUp" component={SignUpScreen} />
         <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
-        <Stack.Screen name='SoundScan' component={EngineSound} />
+        <Stack.Screen name='SoundScan' component={EngineSound} options={{ headerShown: false }}/>
         <Stack.Screen name='Results' component={DiagnosisResult} />
         <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
       </Stack.Navigator>
