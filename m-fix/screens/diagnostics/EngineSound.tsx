@@ -1,4 +1,3 @@
-import { Colors } from '../../constants/Colors';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { StatusBar } from 'expo-status-bar';
@@ -144,160 +143,315 @@ export default function EngineSound({navigateTo}:{navigateTo:(screenName: string
         }
       : undefined;
   }, [sound]);
+
   return (
     <SafeAreaView style={styles.recordSoundContainer}>
       <StatusBar style="light" />
-      <TouchableOpacity style={styles.backButton} onPress={() => navigateTo('CarOwnerDashboard')}>
-        <Ionicons name="chevron-back" size={30} color={Colors.appColors.white} />
-      </TouchableOpacity>
+      
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigateTo('CarOwnerDashboard')}>
+          <Ionicons name="chevron-back" size={28} color="#A4D65E" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Engine Diagnostics</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
       <View style={styles.recordSoundContent}>
-        <View style={styles.recordSoundIconContainer}>
-          {recordingStatus === 'recording' ?
-          <MaterialCommunityIcons name="waveform" size={100} color={Colors.appColors.white} style={styles.micIcon} />
-          :
-          <MaterialIcons name="mic" size={100} color={Colors.appColors.white} style={styles.micIcon} />
-          }
-        </View>
-        <Text style={styles.recordingText}>{recordingStatus === 'recording'?"Recording...":"Record"}</Text>
+        {/* Recording Section */}
+        <View style={styles.recordingSection}>
+          <View style={styles.recordSoundIconContainer}>
+            <View style={styles.innerCircle}>
+              {recordingStatus === 'recording' ? (
+                <MaterialCommunityIcons 
+                  name="waveform" 
+                  size={80} 
+                  color="#A4D65E" 
+                  style={styles.micIcon} 
+                />
+              ) : (
+                <MaterialIcons 
+                  name="mic" 
+                  size={80} 
+                  color="#A4D65E" 
+                  style={styles.micIcon} 
+                />
+              )}
+            </View>
+            {recordingStatus === 'recording' && (
+              <View style={styles.recordingPulse} />
+            )}
+          </View>
+          
+          <Text style={styles.recordingText}>
+            {recordingStatus === 'recording' ? "Recording Engine Sound..." : "Ready to Record"}
+          </Text>
+          
+          <Text style={styles.subtitleText}>
+            {recordingStatus === 'recording' 
+              ? "Capturing audio for analysis" 
+              : "Tap to start engine sound recording"
+            }
+          </Text>
 
-        <TouchableOpacity style={styles.stopButton} onPress={recordingStatus === 'recording' ? stopRecording : startRecording}>
-          {/* <Text style={styles.stopButtonText}>{isRecording?"Stop":"Start Record"}</Text> */}
-          <Text style={styles.stopButtonText}>{recordingStatus === 'recording' ?"Stop":"Start Record"}</Text>
-        </TouchableOpacity>
-
-      {audioUri && (
-        <View style={styles.playbackControls}>
-          <Text style={styles.playbackText}>Recorded Audio Ready:</Text>
-          {playbackStatus === 'playing' ? (
-            <TouchableOpacity style={[styles.playSound,{backgroundColor:'#0047AB'}]} onPress={pauseSound} disabled={!audioUri}>
-              <Text style={styles.playSoundText}>Pause Playback</Text>
-            </TouchableOpacity>
-          ) : playbackStatus === 'paused' ? (
-            <TouchableOpacity style={[styles.playSound,{backgroundColor:'#0047AB'}]} onPress={resumeSound} disabled={!audioUri}>
-              {/* <Text style={styles.stopButtonText}>{isRecording?"Stop":"Start Record"}</Text> */}
-              <Text style={styles.playSoundText}>Resume Playback</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity style={styles.playSound} onPress={playSound} disabled={!audioUri}>
-              {/* <Text style={styles.stopButtonText}>{isRecording?"Stop":"Start Record"}</Text> */}
-              <Text style={styles.playSoundText}>Play Recorded Sound</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={[styles.playSound,{backgroundColor:Colors.appColors.green,marginTop:10}]} disabled={!audioUri}>
-            <Text style={styles.playSoundText}>Diagnos Engine</Text>
+          <TouchableOpacity 
+            style={[
+              styles.recordButton, 
+              recordingStatus === 'recording' && styles.recordButtonActive
+            ]} 
+            onPress={recordingStatus === 'recording' ? stopRecording : startRecording}
+          >
+            <Text style={[
+              styles.recordButtonText,
+              recordingStatus === 'recording' && styles.recordButtonTextActive
+            ]}>
+              {recordingStatus === 'recording' ? "Stop Recording" : "Start Recording"}
+            </Text>
           </TouchableOpacity>
-          <Text style={styles.statusText}>Playback Status: {playbackStatus}</Text>
         </View>
-      )}
 
-      {audioUri && (
-        <Text style={styles.uriText}>URI: {audioUri}</Text>
-      )}
+        {/* Playback Controls */}
+        {audioUri && (
+          <View style={styles.playbackSection}>
+            <View style={styles.divider} />
+            
+            <Text style={styles.playbackTitle}>Audio Analysis</Text>
+            <Text style={styles.playbackSubtitle}>Review your recorded engine sound</Text>
+            
+            <View style={styles.playbackControls}>
+              {playbackStatus === 'playing' ? (
+                <TouchableOpacity style={styles.controlButton} onPress={pauseSound}>
+                  <Ionicons name="pause" size={24} color="#000" />
+                  <Text style={styles.controlButtonText}>Pause</Text>
+                </TouchableOpacity>
+              ) : playbackStatus === 'paused' ? (
+                <TouchableOpacity style={styles.controlButton} onPress={resumeSound}>
+                  <Ionicons name="play" size={24} color="#000" />
+                  <Text style={styles.controlButtonText}>Resume</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.controlButton} onPress={playSound}>
+                  <Ionicons name="play" size={24} color="#000" />
+                  <Text style={styles.controlButtonText}>Play Audio</Text>
+                </TouchableOpacity>
+              )}
+              
+              <TouchableOpacity style={styles.diagnoseButton}>
+                <MaterialIcons name="analytics" size={24} color="#000" />
+                <Text style={styles.diagnoseButtonText}>Analyze Engine</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.statusContainer}>
+              <View style={[
+                styles.statusIndicator, 
+                playbackStatus === 'playing' && styles.statusIndicatorActive
+              ]} />
+              <Text style={styles.statusText}>
+                Status: {playbackStatus.charAt(0).toUpperCase() + playbackStatus.slice(1)}
+              </Text>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   recordSoundContainer: {
     flex: 1,
-    backgroundColor: Colors.appColors.primary,
+    backgroundColor: '#0A0A0A',
+  },
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    // paddingTop: Platform.OS === 'android' ? 'initial' : 0,
-    marginBottom: Platform.OS === 'android' ? 50 : 0,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
   },
   backButton: {
-    alignSelf: 'flex-start',
-    padding: 20,
+    padding: 8,
+    borderRadius: 12,
+    backgroundColor: '#1A1A1A',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  headerSpacer: {
+    width: 44,
   },
   recordSoundContent: {
     flex: 1,
+    paddingHorizontal: 20,
+  },
+  recordingSection: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 50,
+    paddingVertical: 40,
   },
-  recordSoundIconContainer:{
-    width:220,
-    height:220,
-    display:'flex',
+  recordSoundIconContainer: {
+    width: 200,
+    height: 200,
     justifyContent: 'center',
-    alignItems: 'flex-end',
-    borderColor:Colors.appColors.white,
-    borderWidth:4,
-    borderRadius:9999,
-    marginTop: 20,
-    marginBottom: 20,
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#A4D65E',
+    borderRadius: 100,
+    backgroundColor: '#1A1A1A',
+    marginBottom: 30,
+    position: 'relative',
+    shadowColor: '#A4D65E',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  innerCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: '#0F0F0F',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2A2A2A',
+  },
+  recordingPulse: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    borderWidth: 2,
+    borderColor: '#A4D65E',
+    opacity: 0.3,
   },
   micIcon: {
-    padding:20,
-    alignSelf:'center'
+    alignSelf: 'center',
   },
   recordingText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: Colors.appColors.white,
-    marginBottom: 30,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  stopButton: {
-    backgroundColor: Colors.appColors.white,
-    width: Dimensions.get('window').width * 0.8,
-    paddingVertical: 12,
-    borderRadius: 10,
+  subtitleText: {
+    fontSize: 16,
+    color: '#888888',
+    marginBottom: 40,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  recordButton: {
+    backgroundColor: '#A4D65E',
+    width: width * 0.8,
+    paddingVertical: 16,
+    borderRadius: 16,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: '#A4D65E',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 8,
     elevation: 8,
   },
-  stopButtonText: {
-    color: Colors.appColors.primary,
-    fontSize: 22,
-    fontWeight: 'bold',
+  recordButtonActive: {
+    backgroundColor: '#FF4444',
+    shadowColor: '#FF4444',
   },
-  statusText: {
-    marginVertical: 15,
+  recordButtonText: {
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  recordButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  playbackSection: {
+    paddingBottom: 30,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#2A2A2A',
+    marginVertical: 30,
+  },
+  playbackTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  playbackSubtitle: {
     fontSize: 16,
-    color: '#333',
+    color: '#888888',
+    marginBottom: 25,
+    textAlign: 'center',
   },
   playbackControls: {
-    marginTop: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    gap: 12,
+  },
+  controlButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
-    paddingTop: 20,
-    width: '100%',
+    justifyContent: 'center',
+    backgroundColor: '#A4D65E',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
   },
-  playbackText: {
-    fontSize: 18,
-    marginBottom: 15,
-    fontWeight: 'bold',
-  },
-  uriText: {
-    marginTop: 20,
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    paddingHorizontal: 10,
-  },
-  playSound :{
-    backgroundColor: '#0047AB',
-    width: Dimensions.get('window').width * 0.8,
-    // paddingVertical: 4,
-    borderRadius: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 4,
-  },
-  playSoundText:{
-    marginVertical: 15,
+  controlButtonText: {
+    color: '#000000',
     fontSize: 16,
-    color: 'white',
-    fontWeight:'semibold'
-  }
+    fontWeight: '600',
+  },
+  diagnoseButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#7ED321',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  diagnoseButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 15,
+    gap: 8,
+  },
+  statusIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#444444',
+  },
+  statusIndicatorActive: {
+    backgroundColor: '#A4D65E',
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#CCCCCC',
+    fontWeight: '500',
+  },
 });
