@@ -10,25 +10,28 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "1C240F"
+      "backgroundColor": "#1C240F"
     },
     "permissions": [
       "RECORD_AUDIO"
     ],
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "com.carlstorm.mfix",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "This app needs microphone access to record engine sounds."
       }
     },
     "android": {
+      "package": "com.carlstorm.mfix",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "1C240F"
+        "backgroundColor": "#1C240F"
       },
       "permissions": [
         "RECORD_AUDIO",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
       ],
       "edgeToEdgeEnabled": true
     },
@@ -36,22 +39,40 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
-        "expo-video",
-        {
-          "supportsBackgroundPlayback": true,
-          "supportsPictureInPicture": true
-        }
-      ],
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
-          "recordAudioAndroid": true
-        }
-      ],
-      "expo-web-browser"
-    ]
+  [
+    "expo-video",
+    {
+      "supportsBackgroundPlayback": true,
+      "supportsPictureInPicture": true
+    }
+  ],
+  [
+    "expo-camera",
+    {
+      "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
+      "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
+      "recordAudioAndroid": true
+    }
+  ],
+  [
+    "expo-build-properties",
+    {
+      "android": {
+        "compileSdkVersion": 34,
+        "targetSdkVersion": 34,
+        "buildToolsVersion": "34.0.0",
+        "kotlinVersion": "1.9.10"
+      }
+    }
+  ],
+  "expo-web-browser"
+]
+,
+    "extra": {
+      "eas": {
+        "projectId": "fb102681-428e-4e34-a106-976fb2f354de"
+      }
+    },
+    "owner": "carlstorm"
   }
 }

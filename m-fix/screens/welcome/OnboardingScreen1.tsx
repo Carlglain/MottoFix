@@ -28,7 +28,7 @@ const OnboardingScreen = ({ navigation }) => {
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={()=>navigation.replace('HomeTabs')} style={styles.skipButton}>
+      <TouchableOpacity onPress={()=>navigation.replace('Login')} style={styles.skipButton}>
         <Text style={styles.skipButtonText}>Skip</Text>
       </TouchableOpacity>
 

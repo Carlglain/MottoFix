@@ -76,9 +76,9 @@ export default function App() {
         <Stack.Screen name="status" component={VehicleStatus} />
         <Stack.Screen name="Mechanic" component={ContactMechanic} />
         <Stack.Screen name="Tutorials" component={Tutorials}  />
-        <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
         <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
         <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
         <Stack.Screen name='SoundScan' component={EngineSound} options={{ headerShown: false }}/>

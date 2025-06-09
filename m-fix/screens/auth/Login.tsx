@@ -1,17 +1,78 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image
+  Image,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithCredential,
+} from 'firebase/auth';
+import { auth } from '../../services/firebase';
+
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId: '835060401854-46tgqfqd32nb0o2a84qeah506c5etce5.apps.googleusercontent.com',
+    iosClientId: '<your_ios_client_id_if_any>',
+    webClientId: '835060401854-ca5im2jb727b2ub202rtlhee6q7rq6tk.apps.googleusercontent.com',
+    redirectUri:AuthSession.makeRedirectUri({ useProxy: true }) 
+  });
+
+
+console.log('Redirect URI:', AuthSession.makeRedirectUri({ useProxy: true }));
+
+
+  useEffect(() => {
+    if (response?.type === 'success' && response.authentication?.idToken) {
+      const { idToken } = response.authentication;
+
+      const credential = GoogleAuthProvider.credential(idToken);
+
+      signInWithCredential(auth, credential)
+        .then(() => {
+          Alert.alert('Success', 'Logged in with Google!');
+          navigation.navigate('Home');
+        })
+        .catch((error) => {
+          console.error('Firebase Google login error:', error);
+          Alert.alert('Login Failed', error.message);
+        });
+    } else if (response?.type === 'error') {
+      console.error('Google sign-in error:', response.error);
+      Alert.alert('Google Sign-In Failed', response.error.message || 'An unknown error occurred.');
+    }
+  }, [response]);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      return Alert.alert('Missing Fields', 'Please enter both email and password.');
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      Alert.alert('Success', 'Logged in successfully.');
+      navigation.navigate('HomeTabs');
+    } catch (error) {
+      console.error('Email login error:', error);
+      Alert.alert('Login Failed', error.message);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -19,7 +80,15 @@ const LoginScreen = ({ navigation }) => {
 
       <Text style={styles.title}>Welcome back</Text>
 
-      <TextInput placeholder="Email" placeholderTextColor="#ccc" style={styles.input} />
+      <TextInput
+        placeholder="Email"
+        placeholderTextColor="#ccc"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
       <View style={styles.passwordContainer}>
         <TextInput
@@ -27,6 +96,8 @@ const LoginScreen = ({ navigation }) => {
           placeholderTextColor="#ccc"
           secureTextEntry={!passwordVisible}
           style={styles.passwordInput}
+          value={password}
+          onChangeText={setPassword}
         />
         <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
           <Ionicons
@@ -41,46 +112,47 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.forgotText}>Forgot password?</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.loginButton}
-        onPress={() => navigation.navigate('Home')}
-      >
+      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
         <Text style={styles.loginButtonText}>Log in</Text>
       </TouchableOpacity>
 
       <View style={styles.authOptions}>
-      <TouchableOpacity style={styles.googleButton}>
-  <Image
-    source={{
-      uri: 'https://www.transparentpng.com/thumb/google-logo/colorful-google-logo-transparent-clipart-download-u3DWLj.png',
-    }}
-    style={styles.googleLogo}
-  />
-  <Image
-                source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }}
-                style={styles.googleIcon}
-              />
-  <Text style={styles.googleText}>Sign in with Google</Text>
-</TouchableOpacity>
+        <TouchableOpacity
+          style={styles.googleButton}
+          onPress={() => {
+            if (request) {
+              promptAsync();
+            } else {
+              Alert.alert('Error', 'Google sign-in not available.');
+            }
+          }}
+        >
+         
+          <Image
+            source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }}
+            style={styles.googleIcon}
+          />
+          <Text style={styles.googleText}>Sign in with Google</Text>
+        </TouchableOpacity>
 
-
-        <TouchableOpacity style={styles.signupButton}>
+        <TouchableOpacity style={styles.signupButton} onPress={() => navigation.navigate('SignUp')}>
           <Text style={styles.signupText}>Sign up</Text>
         </TouchableOpacity>
       </View>
 
       <Text style={styles.bottomText}>
-        Don’t have an account? <Text style={styles.linkText}>Sign Up</Text>
+        Don’t have an account?{' '}
+        <Text style={styles.linkText} onPress={() => navigation.navigate('SignUp')}>
+          Sign Up
+        </Text>
       </Text>
     </View>
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
     backgroundColor: '#000',
     padding: 20,
     justifyContent: 'center',
@@ -155,14 +227,17 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginRight: 10,
     marginLeft: 10,
-    fontSize: 200,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
   },
   googleText: {
     color: 'white',
     fontSize: 14,
     fontWeight: '500',
   },
-  
   signupButton: {
     backgroundColor: '#2e3a1f',
     paddingVertical: 10,
@@ -184,12 +259,6 @@ const styles = StyleSheet.create({
     color: '#4caf50',
     fontWeight: 'bold',
   },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
 });
 
 export default LoginScreen;
-

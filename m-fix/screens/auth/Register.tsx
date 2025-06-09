@@ -9,10 +9,14 @@ import {
   Alert,
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { collection, addDoc } from 'firebase/firestore';
+import { auth, db } from '../../services/firebase';
 
-  
-export default function SignUpScreen() {
-  const [code, setCode] = useState('');
+export default function SignUpScreen({ navigation }) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(''); // ✅ new state
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [role, setRole] = useState('');
@@ -21,7 +25,7 @@ export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
-    if (!code || !password || !confirm || !role) {
+    if (!name || !email || !phone || !password || !confirm || !role) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
@@ -33,11 +37,23 @@ export default function SignUpScreen() {
 
     try {
       setLoading(true);
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userId = userCredential.user.uid;
+
+      // Save user details to Firestore
+      await addDoc(collection(db, 'users'), {
+        name,
+        email,
+        phone,
+        role,
+        userId,
+      });
+
       Alert.alert('Success', 'Account created!');
+      navigation.navigate('Login');
     } catch (err) {
-      Alert.alert('Signup Failed', 'Something went wrong.');
+      console.error('Signup error:', err);
+      Alert.alert('Signup Failed', err.message);
     } finally {
       setLoading(false);
     }
@@ -48,11 +64,30 @@ export default function SignUpScreen() {
       <Text style={styles.header}>Sign Up</Text>
 
       <TextInput
-        placeholder="Code"
+        placeholder="Full Name"
         placeholderTextColor="#888"
         style={styles.input}
-        value={code}
-        onChangeText={setCode}
+        value={name}
+        onChangeText={setName}
+      />
+
+      <TextInput
+        placeholder="Email"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+
+      <TextInput
+        placeholder="Phone Number"
+        placeholderTextColor="#888"
+        style={styles.input}
+        value={phone}
+        onChangeText={setPhone}
+        keyboardType="phone-pad"
       />
 
       <View style={styles.passwordContainer}>
@@ -86,7 +121,7 @@ export default function SignUpScreen() {
       <View style={styles.pickerContainer}>
         <RNPickerSelect
           onValueChange={(value) => setRole(value)}
-          placeholder={{ label: "Car Owner", value: null }}
+          placeholder={{ label: 'Select Role', value: null }}
           items={[
             { label: 'Car Owner', value: 'owner' },
             { label: 'Mechanic', value: 'mechanic' },
@@ -113,7 +148,9 @@ export default function SignUpScreen() {
 
       <Text style={styles.footerText}>
         Already have an account?{' '}
-        <Text style={styles.signInLink}>Sign In</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.signInLink}>Sign In</Text>
+        </TouchableOpacity>
       </Text>
     </View>
   );
