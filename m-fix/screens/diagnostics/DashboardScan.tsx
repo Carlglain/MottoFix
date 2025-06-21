@@ -1,11 +1,14 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Camera, ImageIcon, Target, AlertTriangle, RotateCcw } from 'lucide-react-native';
+import { ArrowLeft, Camera, ImageIcon, Target, AlertTriangle, RotateCcw, ExternalLink } from 'lucide-react-native';
 import Button from '../../components/ui/button';
 import BottomNavigation from '../../navigation/BottomNavigation';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+
+const API_BASE_URL = 'http://192.168.96.1:3000'; // Change this to your backend URL
 
 export default function ScanDashboardLight({navigation}) {
   // Camera states
@@ -23,11 +26,91 @@ export default function ScanDashboardLight({navigation}) {
   const [showSavedPhotos, setShowSavedPhotos] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
-  const [activeButton, setActiveButton] = useState('camera'); // Track active button
+  const [activeButton, setActiveButton] = useState('camera');
+  
+  // Backend response state
+  const [diagnosisResult, setDiagnosisResult] = useState(null);
+  const [error, setError] = useState(null);
+  
   const [savedPhotos] = useState([
     { id: 1, uri: 'https://example.com/photo1.jpg' },
     { id: 2, uri: 'https://example.com/photo2.jpg' },
   ]);
+
+  // Convert image to base64
+  const convertImageToBase64 = async (imageUri) => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return base64;
+    } catch (error) {
+      console.error('Error converting image to base64:', error);
+      throw error;
+    }
+  };
+
+  // Send image to backend for diagnosis
+  const sendImageForDiagnosis = async (imageUri) => {
+    try {
+      setIsProcessing(true);
+      setError(null);
+      setAnalysisText('Converting image...');
+      setProcessingProgress(20);
+
+      // Convert image to base64
+      const base64Image = await convertImageToBase64(imageUri);
+      
+      setAnalysisText('Sending to AI for analysis...');
+      setProcessingProgress(40);
+
+      // Prepare request payload
+      const payload = {
+        userId: 'user123', // Replace with actual user ID
+        vehicleId: 'vehicle456', // Replace with actual vehicle ID if available
+        inputData: base64Image // base64 encoded image without prefix
+      };
+
+      setAnalysisText('AI is analyzing the dashboard light...');
+      setProcessingProgress(60);
+
+      // Send to backend
+      const response = await fetch(`${API_BASE_URL}/diagnose/image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      setProcessingProgress(80);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to diagnose image');
+      }
+
+      const result = await response.json();
+      
+      setAnalysisText('Analysis complete!');
+      setProcessingProgress(100);
+
+      // Store the result
+      setDiagnosisResult(result.result);
+      
+      setTimeout(() => {
+        setIsProcessing(false);
+        setShowResults(true);
+      }, 500);
+
+    } catch (error) {
+      console.error('Diagnosis error:', error);
+      setError(error.message || 'Failed to analyze image');
+      setAnalysisText('Analysis failed');
+      setIsProcessing(false);
+      Alert.alert('Error', error.message || 'Failed to analyze the image. Please try again.');
+    }
+  };
 
   // Camera permission check
   if (!permission) {
@@ -66,7 +149,6 @@ export default function ScanDashboardLight({navigation}) {
   const handleGallery = async () => {
     setActiveButton('gallery');
     try {
-      // Request media library permissions
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       
       if (permissionResult.granted === false) {
@@ -78,7 +160,6 @@ export default function ScanDashboardLight({navigation}) {
             { 
               text: 'Go to Settings', 
               onPress: () => {
-                // You can use Linking.openSettings() here if needed
                 Alert.alert('Please enable photo library access in your device settings.');
               }
             }
@@ -88,7 +169,6 @@ export default function ScanDashboardLight({navigation}) {
         return;
       }
 
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -103,8 +183,8 @@ export default function ScanDashboardLight({navigation}) {
         setShowGallery(false);
         setShowSavedPhotos(false);
         
-        // Start processing the selected image
-        processSelectedImage(selectedImage.uri);
+        // Send to backend for analysis
+        await sendImageForDiagnosis(selectedImage.uri);
       } else {
         setActiveButton('camera');
       }
@@ -115,39 +195,18 @@ export default function ScanDashboardLight({navigation}) {
     }
   };
 
-  // Process selected image (same as camera capture)
-  const processSelectedImage = (imageUri) => {
-    setIsProcessing(true);
-    setAnalysisText('Analyzing the selected image');
-    setProcessingProgress(0);
-
-    const progressInterval = setInterval(() => {
-      setProcessingProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          setIsProcessing(false);
-          setShowResults(true);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
-  };
-
   // Handle camera button - either capture or retake
   const handleCameraButton = async () => {
-    // If there's a captured image, act as retake button
     if (capturedImage) {
       resetCapture();
       setActiveButton('camera');
       return;
     }
 
-    // Otherwise, capture photo
-    // if (!cameraRef.current) {
-    //   Alert.alert('Error', 'Camera is not ready');
-    //   return;
-    // }
+    if (!cameraRef.current) {
+      Alert.alert('Error', 'Camera is not ready');
+      return;
+    }
 
     try {
       setIsCapturing(true);
@@ -155,7 +214,6 @@ export default function ScanDashboardLight({navigation}) {
       setShowSavedPhotos(false);
       setActiveButton('camera');
 
-      // Take picture
       const photo = await cameraRef.current.takePictureAsync({
         quality: 0.8,
         base64: false,
@@ -163,51 +221,20 @@ export default function ScanDashboardLight({navigation}) {
       });
 
       setCapturedImage(photo.uri);
-      setSelectedGalleryImage(null); // Clear any gallery selection
+      setSelectedGalleryImage(null);
       
-      // Start processing simulation
-      setTimeout(() => {
+      setTimeout(async () => {
         setIsCapturing(false);
-        setIsProcessing(true);
-        setAnalysisText('Analyzing the dashboard light');
-
-        const progressInterval = setInterval(() => {
-          setProcessingProgress((prev) => {
-            if (prev >= 100) {
-              clearInterval(progressInterval);
-              setIsProcessing(false);
-              setShowResults(true);
-              return 100;
-            }
-            return prev + 10;
-          });
-        }, 200);
+        // Send to backend for analysis
+        await sendImageForDiagnosis(photo.uri);
       }, 1000);
 
     } catch (error) {
-      // console.error('Error taking picture:', error);
-      // Alert.alert('Error', 'Failed to capture image');
+      console.error('Error taking picture:', error);
+      Alert.alert('Error', 'Failed to capture image');
       setIsCapturing(false);
       setActiveButton('camera');
     }
-  };
-
-  // Show gallery options
-  const showGalleryOptions = () => {
-    Alert.alert(
-      'Select Image Source',
-      'Choose how you want to select an image',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Photo Library', onPress: handleGallery },
-        { text: 'Take Photo', onPress: () => {
-          // Reset to camera mode
-          setShowGallery(false);
-          setShowSavedPhotos(false);
-          setActiveButton('camera');
-        }}
-      ]
-    );
   };
 
   const handleSavedPhotos = () => {
@@ -225,6 +252,16 @@ export default function ScanDashboardLight({navigation}) {
     setIsProcessing(false);
     setProcessingProgress(0);
     setShowSavedPhotos(false);
+    setDiagnosisResult(null);
+    setError(null);
+  };
+
+  // Open video tutorial
+  const openVideoTutorial = () => {
+    if (diagnosisResult?.videoUrl) {
+      // In a real app, you'd use Linking.openURL(diagnosisResult.videoUrl)
+      Alert.alert('Video Tutorial', `Opening: ${diagnosisResult.videoUrl}`);
+    }
   };
 
   // Get the current image source info
@@ -249,7 +286,10 @@ export default function ScanDashboardLight({navigation}) {
           {/* Camera Controls */}
           <View style={styles.cameraControls}>
             <TouchableOpacity 
-              onPress={showGalleryOptions} 
+              onPress={() => Alert.alert('Gallery', 'Choose image source', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Photo Library', onPress: handleGallery },
+              ])} 
               style={[
                 styles.galleryButton,
                 activeButton === 'gallery' && styles.activeButton
@@ -300,12 +340,12 @@ export default function ScanDashboardLight({navigation}) {
                     <TouchableOpacity 
                       key={photo.id} 
                       style={styles.galleryItem}
-                      onPress={() => {
+                      onPress={async () => {
                         setCapturedImage(photo.uri);
                         setSelectedGalleryImage(photo.uri);
                         setShowSavedPhotos(false);
                         setActiveButton('camera');
-                        processSelectedImage(photo.uri);
+                        await sendImageForDiagnosis(photo.uri);
                       }}
                     >
                       <Image 
@@ -325,7 +365,6 @@ export default function ScanDashboardLight({navigation}) {
           {!showSavedPhotos && (
             <View style={styles.cameraViewfinder}>
               {capturedImage ? (
-                // Show captured image
                 <View style={styles.capturedImageContainer}>
                   <Image source={{ uri: capturedImage }} style={styles.capturedImage} />
                   <TouchableOpacity onPress={resetCapture} style={styles.retakeButton}>
@@ -342,13 +381,11 @@ export default function ScanDashboardLight({navigation}) {
                   )}
                 </View>
               ) : (
-                // Show live camera feed
                 <CameraView
                   ref={cameraRef}
                   style={styles.camera}
                   facing={facing}
                 >
-                  {/* Camera overlay with flip button */}
                   <View style={styles.cameraOverlay}>
                     <TouchableOpacity 
                       onPress={toggleCameraFacing} 
@@ -357,7 +394,6 @@ export default function ScanDashboardLight({navigation}) {
                       <RotateCcw style={styles.flipIcon} />
                     </TouchableOpacity>
                     
-                    {/* Viewfinder overlay */}
                     <View style={styles.viewfinderOverlay}>
                       <View style={styles.scanFrame} />
                     </View>
@@ -367,7 +403,6 @@ export default function ScanDashboardLight({navigation}) {
             </View>
           )}
 
-          {/* Green indicator line */}
           <View style={styles.indicatorLine} />
         </View>
 
@@ -401,7 +436,7 @@ export default function ScanDashboardLight({navigation}) {
             </View>
 
             {/* Processing Section */}
-            {(isProcessing || showResults) && (
+            {isProcessing && (
               <View style={styles.processingSection}>
                 <View style={styles.processingTextContainer}>
                   <Text style={styles.processingText}>Processing...</Text>
@@ -409,9 +444,7 @@ export default function ScanDashboardLight({navigation}) {
                     <View
                       style={[
                         styles.progressIndicatorFilled,
-                        {
-                          width: `${processingProgress}%`,
-                        },
+                        { width: `${processingProgress}%` },
                       ]}
                     />
                   </View>
@@ -421,29 +454,61 @@ export default function ScanDashboardLight({navigation}) {
             )}
 
             {/* Results Section */}
-            {showResults && (
+            {showResults && diagnosisResult && (
               <View style={styles.resultsSection}>
                 <View style={styles.resultContainer}>
                   <View style={styles.resultIconContainer}>
                     <AlertTriangle style={styles.resultIcon} />
                   </View>
                   <View style={styles.resultTextContainer}>
-                    <Text style={styles.resultHeaderText}>Engine Malfunction</Text>
-                    <Text style={styles.resultSubtext}>Critical</Text>
+                    <Text style={styles.resultHeaderText}>{diagnosisResult.faultName}</Text>
+                    <Text style={styles.resultSubtext}>Dashboard Warning</Text>
                   </View>
                 </View>
 
-                <Text style={styles.resultDescription}>
-                  This light indicates a serious issue with the engine. It's crucial to address this immediately to
-                  prevent further damage.
-                </Text>
+                <View style={styles.explanationSection}>
+                  <Text style={styles.explanationTitle}>Explanation</Text>
+                  <Text style={styles.explanationText}>{diagnosisResult.explanation}</Text>
+                </View>
 
+                <View style={styles.recommendationSection}>
+                  <Text style={styles.recommendationTitle}>Recommendation</Text>
+                  <Text style={styles.recommendationText}>{diagnosisResult.recommendation}</Text>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  {diagnosisResult.videoUrl && (
+                    <Button 
+                      onPress={openVideoTutorial}
+                      variant="primary" 
+                      style={styles.getTutorialButton}
+                    >
+                      <ExternalLink style={styles.buttonIcon} />
+                      Watch Tutorial
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    onPress={resetCapture}
+                    variant="secondary" 
+                    style={styles.scanAgainButton}
+                  >
+                    Scan Again
+                  </Button>
+                </View>
+              </View>
+            )}
+
+            {/* Error Section */}
+            {error && (
+              <View style={styles.errorSection}>
+                <Text style={styles.errorText}>{error}</Text>
                 <Button 
-                  onPress={() => navigation.navigate('Results')}
-                  variant="primary" 
-                  style={styles.getTutorialButton}
+                  onPress={resetCapture}
+                  variant="secondary" 
+                  style={styles.retryButton}
                 >
-                  Get Tutorial
+                  Try Again
                 </Button>
               </View>
             )}
@@ -463,7 +528,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 80, // Space for navbar
+    paddingBottom: 80,
   },
   
   // Permission screens
@@ -576,7 +641,7 @@ const styles = StyleSheet.create({
     borderColor: '#FF4444',
   },
   activeIcon: {
-    backgroundColor: '#FF4444',
+    color: '#FF4444',
   },
 
   // Camera viewfinder
@@ -790,15 +855,88 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#D32F2F',
   },
-  resultDescription: {
+
+  // Explanation section
+  explanationSection: {
+    backgroundColor: '#1A1A1A',
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  explanationTitle: {
     fontSize: 16,
+    fontWeight: 'bold',
+    color: '#5A7D28',
+    marginBottom: 8,
+  },
+  explanationText: {
+    fontSize: 14,
     color: '#fff',
+    lineHeight: 20,
+  },
+
+  // Recommendation section
+  recommendationSection: {
+    backgroundColor: '#1A1A1A',
+    padding: 16,
+    borderRadius: 8,
     marginBottom: 16,
-    lineHeight: 24,
+  },
+  recommendationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#5A7D28',
+    marginBottom: 8,
+  },
+  recommendationText: {
+    fontSize: 14,
+    color: '#fff',
+    lineHeight: 20,
+  },
+
+  // Button container
+  buttonContainer: {
+    flexDirection: 'column',
+    gap: 12,
   },
   getTutorialButton: {
-    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#5A7D28',
+    paddingVertical: 12,
+  },
+  scanAgainButton: {
+    backgroundColor: '#3A4A1D',
+    borderWidth: 1,
+    borderColor: '#5A7D28',
+    paddingVertical: 12,
+  },
+  buttonIcon: {
+    width: 16,
+    height: 16,
+    color: '#fff',
+    marginRight: 8,
+  },
+
+  // Error section
+  errorSection: {
+    backgroundColor: '#2D1B1B',
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  retryButton: {
+    backgroundColor: '#D32F2F',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
 
   // Gallery sections
