@@ -525,7 +525,7 @@ const processSelectedImage = async (imageUri) => {
                       style={[
                         styles.progressIndicatorFilled,
                         {
-                          width: `${processingProgress}%`,
+                          width: ${processingProgress}%,
                         },
                       ]}
                     />

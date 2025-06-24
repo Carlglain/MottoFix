@@ -28,6 +28,7 @@ app.use("/youtube", youtubeRouter);
 app.get("/", (req, res) => {
   res.send("MFix backend is running!");
 });
+
 app.use((req, res, next) => {
   console.log(`🔍 ${req.method} ${req.url}`);
   next();
