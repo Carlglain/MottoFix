@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const axios = require("axios");
+const multer = require('multer');
 const FormData = require("form-data");
 const { db } = require("../firebase");
 const ffmpeg = require('fluent-ffmpeg');
@@ -11,6 +12,10 @@ const os = require('os');
 require("dotenv").config();
 
 // FFmpeg will be found automatically from system PATH
+
+// Configure multer for in-memory storage, as we are processing the buffer directly
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // Function to convert audio buffer to WAV buffer using temporary files
 async function convertAudioToWAV(inputBuffer, originalName) {
@@ -135,17 +140,21 @@ async function fetchYoutubeVideo(faultName) {
 }
 
 // ✅ POST /diagnose/sound
-router.post("/sound", async (req, res) => {
-  const { userId, vehicleId, inputData, originalName } = req.body;
+// Use multer middleware 'upload.single("audio")' to handle the file upload.
+// The key 'audio' must match the key used in the frontend FormData.
+router.post("/sound", upload.single('audio'), async (req, res) => {
+  // req.body will contain the text fields (userId, vehicleId) from the FormData
+  const { userId, vehicleId } = req.body;
+  // req.file will contain the uploaded file's information
+  const audioFile = req.file;
 
-  if (!userId || !inputData || !originalName) {
-    return res.status(400).json({ error: "Missing userId, audio data (inputData), or originalName" });
+  if (!userId || !audioFile) {
+    return res.status(400).json({ error: "Missing userId or audio file" });
   }
 
   try {
-    // Convert the base64 audio string back into a Buffer
-    const audioBuffer = Buffer.from(inputData, 'base64');
-
+    const audioBuffer = audioFile.buffer; // The audio data is already a Buffer
+    const originalName = audioFile.originalname; // Get the original filename
     const result = await runMLSound(audioBuffer, originalName);
     
     // Use Gemini API to get explanation and recommendation
@@ -212,8 +221,8 @@ router.post("/sound", async (req, res) => {
 
     });
   } catch (error) {
-    console.error("Sound diagnosis error:", error.response?.data || error.message || error);
-    res.status(500).json({ error: "Sound diagnosis failed" });
+    console.error("Sound diagnosis error:", error.stack || error);
+    res.status(500).json({ error: "Sound diagnosis failed", message: error.message });
   }
 });
 
@@ -324,7 +333,4 @@ router.post("/image", async (req, res) => {
     res.status(500).json({ error: "Image diagnosis failed" });
   }
 });
-
-
 module.exports = router;
-

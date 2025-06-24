@@ -145,27 +145,33 @@ export default function EngineSound({navigation}) {
     setAnalysisResult(null);
 
     try {
-      // 1. Convert audio file to a base64 string
-      const base64Audio = await FileSystem.readAsStringAsync(audioUri, {
-        encoding: FileSystem.EncodingType.Base64,
+      // 1. Create a new FormData object for file upload
+      const formData = new FormData();
+
+      // Extract filename and type from the audio URI
+      const filename = audioUri.split('/').pop();
+      const match = /\.(\w+)$/.exec(filename);
+      const type = match ? `audio/${match[1]}` : `audio`;
+
+      // Append the audio file to the form data.
+      // React Native's FormData can handle the file URI directly.
+      formData.append('audio', {
+        uri: audioUri,
+        name: filename,
+        type,
       });
 
-      // 2. Prepare the JSON payload
-      const payload = {
-        // Replace with actual user/vehicle ID from your app's state management
-        userId: 'user123', 
-        vehicleId: 'vehicle456',
-        inputData: base64Audio,
-        originalName: `recording-${Date.now()}.m4a`, // Pass filename for context
-      };
+      // Append other necessary data
+      formData.append('userId', 'user123');
+      formData.append('vehicleId', 'vehicle456');
 
       // IMPORTANT: Replace with your actual backend IP/URL
-      const response = await fetch('http://192.168.96.1:3000/diagnose/sound', {
+      const response = await fetch('http://192.168.1.253:3000/diagnose/sound', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          // 'Content-Type': 'multipart/form-data' is set automatically by fetch when using FormData
         },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       const data = await response.json();

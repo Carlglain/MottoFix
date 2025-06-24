@@ -4,7 +4,12 @@ const axios = require('axios');
 const router = express.Router();
 
 async function fetchYoutubeVideo(faultName) {
-  const apiKey = "AIzaSyA76jrkC2NjPNiM_SSoeBKCxES9-nk0gc0"; 
+  const apiKey = process.env.YOUTUBE_API_KEY;
+  if (!apiKey) {
+    console.error("YouTube API key is missing. Please set YOUTUBE_API_KEY in your .env file.");
+    // Don't attempt the request if the key is missing.
+    return null;
+  }
   const query = encodeURIComponent(`${faultName} car repair`);
   const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${query}&key=${apiKey}&maxResults=1`;
 
