@@ -103,10 +103,8 @@ async function runMLSound(audioBuffer, originalname) {
   } catch (error) {
     console.error("ML service error:", error.response ? error.response.data : error.message);
     throw new Error("Failed to get diagnosis from Python ML service");
-
-const { db } = require("../firebase");
-const axios = require("axios");
-require("dotenv").config(); // Load .env variables
+  }
+}
 
 // 🔧 Dummy ML Response Generator (used only for sound)
 function runFakeML(type, input) {
