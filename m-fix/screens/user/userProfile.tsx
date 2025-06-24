@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#2D4A3E',
+    backgroundColor: '#000',
   },
   headerTitle: {
     fontSize: 18,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#2D4A3E',
+    backgroundColor: '#000',
   },
   profileSection: {
     alignItems: 'center',

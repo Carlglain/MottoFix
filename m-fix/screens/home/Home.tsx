@@ -113,9 +113,10 @@ export default function Home({ navigation }) {
     <ScrollView style={styles.container}>
       <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
         <Text style={styles.header}>MFix</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
           <Ionicons name="notifications" size={24} color="white" />
         </TouchableOpacity>
+
       </View>
 
       <View style={styles.statusRow}>
@@ -169,6 +170,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
     padding: 25,
+    paddingTop: 50,
   },
   loadingContainer: {
     flex: 1,

@@ -14,7 +14,7 @@ const OnboardingScreen = ({ navigation }) => {
       <Text style={styles.title}>Know Your Car, Drive Smart</Text>
 
       <Image
-        source={require('../../assets/carimage.png')}
+        source={require('../../assets/carimage.jpeg')}
         style={styles.image}
         resizeMode="cover"
       />

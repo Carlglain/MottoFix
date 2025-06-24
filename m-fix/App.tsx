@@ -21,6 +21,10 @@ import Home from './screens/home/Home';
 import { Ionicons } from '@expo/vector-icons'; // Ensure you have this installed
 import Test from './screens/diagnostics/test';
 import { AuthProvider } from './services/context/AuthContext'; 
+import NotificationsScreen from './screens/home/NotificationScreen';
+
+
+
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -85,6 +89,7 @@ export default function App() {
           <Stack.Screen name='Results' component={DiagnosisResult} />
           <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
           <Stack.Screen name="EmailVerification" component={VerificationScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }}/>
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
