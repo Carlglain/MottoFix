@@ -3,9 +3,13 @@ import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Camera, ImageIcon, Target, AlertTriangle, RotateCcw } from 'lucide-react-native';
 import Button from '../../components/ui/button';
+import DiagnosticResults from './DiagnosisResult'; // Import the DiagnosticResults component
 import BottomNavigation from '../../navigation/BottomNavigation';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import axios from 'axios';
+import { useAuth } from '../../services/context/AuthContext';
 
 export default function ScanDashboardLight({navigation}) {
   // Camera states
@@ -21,13 +25,75 @@ export default function ScanDashboardLight({navigation}) {
   const [analysisText, setAnalysisText] = useState('');
   const [showGallery, setShowGallery] = useState(false);
   const [showSavedPhotos, setShowSavedPhotos] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const [selectedGalleryImage, setSelectedGalleryImage] = useState(null);
-  const [activeButton, setActiveButton] = useState('camera'); // Track active button
+  const [capturedImage, setCapturedImage] = useState('');
+  const [selectedGalleryImage, setSelectedGalleryImage] = useState('');
+  const [activeButton, setActiveButton] = useState('camera');
+  const [diagnosisResult, setDiagnosisResult] = useState(null);
   const [savedPhotos] = useState([
     { id: 1, uri: 'https://example.com/photo1.jpg' },
     { id: 2, uri: 'https://example.com/photo2.jpg' },
   ]);
+
+  const { user, loading } = useAuth();
+
+  // Convert image to base64
+  const convertImageToBase64 = async (imageUri) => {
+    try {
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      return base64;
+    } catch (error) {
+      console.error('Error converting image to base64:', error);
+      throw error;
+    }
+  };
+
+  // API call to diagnose image with improved error handling
+const diagnoseImage = async (base64Image) => {
+  try {
+    console.log('Starting API call to diagnose image...');
+    
+    const response = await axios.post('http://192.168.1.50:3000/diagnose/image', {
+      userId: user.uid,
+      vehicleId: "carModelX",
+      inputData: base64Image
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 120000, // Increased to 120 seconds
+    });
+
+    console.log('API call successful:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error calling diagnosis API:', error);
+    
+    // More detailed error logging
+    if (error.code === 'ECONNABORTED') {
+      console.error('Request timeout - server took too long to respond');
+      throw new Error('Request timeout - please try again');
+    } else if (error.response) {
+      console.error('Response data:', error.response.data);
+      console.error('Response status:', error.response.status);
+      console.error('Response headers:', error.response.headers);
+      
+      if (error.response.status === 504) {
+        throw new Error('Server timeout - the analysis is taking too long. Please try again.');
+      } else if (error.response.status === 502) {
+        throw new Error('Server temporarily unavailable. Please try again later.');
+      } else if (error.response.status === 500) {
+        throw new Error('Server error occurred during analysis. Please try again.');
+      }
+    } else if (error.request) {
+      console.error('No response received:', error.request);
+      throw new Error('Unable to connect to server. Check your internet connection.');
+    }
+    
+    throw error;
+  }
+};
 
   // Camera permission check
   if (!permission) {
@@ -57,6 +123,23 @@ export default function ScanDashboardLight({navigation}) {
     );
   }
 
+  // If loading or no user, show loading state or prompt to sign in
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Please sign in to continue</Text>
+      </View>
+    );
+  }
+
   // Toggle camera facing (front/back)
   const toggleCameraFacing = () => {
     setFacing(current => (current === 'back' ? 'front' : 'back'));
@@ -78,7 +161,6 @@ export default function ScanDashboardLight({navigation}) {
             { 
               text: 'Go to Settings', 
               onPress: () => {
-                // You can use Linking.openSettings() here if needed
                 Alert.alert('Please enable photo library access in your device settings.');
               }
             }
@@ -102,9 +184,9 @@ export default function ScanDashboardLight({navigation}) {
         setCapturedImage(selectedImage.uri);
         setShowGallery(false);
         setShowSavedPhotos(false);
-        
+        console.log('Selected image:', selectedImage.uri);
         // Start processing the selected image
-        processSelectedImage(selectedImage.uri);
+        await processSelectedImage(selectedImage.uri);
       } else {
         setActiveButton('camera');
       }
@@ -115,24 +197,69 @@ export default function ScanDashboardLight({navigation}) {
     }
   };
 
-  // Process selected image (same as camera capture)
-  const processSelectedImage = (imageUri) => {
-    setIsProcessing(true);
-    setAnalysisText('Analyzing the selected image');
-    setProcessingProgress(0);
+  // Updated processSelectedImage with better error handling
+const processSelectedImage = async (imageUri) => {
+  setIsProcessing(true);
+  setAnalysisText('Converting image...');
+  setProcessingProgress(10);
 
-    const progressInterval = setInterval(() => {
-      setProcessingProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(progressInterval);
-          setIsProcessing(false);
-          setShowResults(true);
-          return 100;
+  try {
+    // Convert image to base64
+    setAnalysisText('Preparing image for analysis...');
+    setProcessingProgress(30);
+    const start = Date.now();
+    const base64Image = await convertImageToBase64(imageUri);
+    console.log("Base64 conversion took:", Date.now() - start, "ms");
+    setAnalysisText('Sending to AI diagnostic service...');
+    setProcessingProgress(50);
+    
+    // Call API with improved error handling
+    const result = await diagnoseImage(base64Image);
+    
+    setAnalysisText('Processing diagnosis results...');
+    setProcessingProgress(80);
+    
+    // Store the result
+    setDiagnosisResult(result);
+    
+    setAnalysisText('Analysis complete!');
+    setProcessingProgress(100);
+    
+    // Show results after a brief delay
+    setTimeout(() => {
+      setIsProcessing(false);
+      setShowResults(true);
+    }, 500);
+    
+  } catch (error) {
+    console.error('Error processing image:', error);
+    setIsProcessing(false);
+    setProcessingProgress(0);
+    
+    // More specific error messages
+    let errorMessage = 'Failed to analyze the image. Please try again.';
+    
+    if (error.message) {
+      errorMessage = error.message;
+    } else if (error.response?.status === 504) {
+      errorMessage = 'The server is taking too long to respond. Please try again later.';
+    } else if (error.code === 'NETWORK_ERROR') {
+      errorMessage = 'Network error. Please check your internet connection.';
+    }
+    
+    Alert.alert(
+      'Analysis Failed',
+      errorMessage,
+      [
+        { text: 'OK' },
+        { 
+          text: 'Retry', 
+          onPress: () => processSelectedImage(imageUri)
         }
-        return prev + 10;
-      });
-    }, 200);
-  };
+      ]
+    );
+  }
+};
 
   // Handle camera button - either capture or retake
   const handleCameraButton = async () => {
@@ -144,10 +271,10 @@ export default function ScanDashboardLight({navigation}) {
     }
 
     // Otherwise, capture photo
-    // if (!cameraRef.current) {
-    //   Alert.alert('Error', 'Camera is not ready');
-    //   return;
-    // }
+    if (!cameraRef.current) {
+      Alert.alert('Error', 'Camera is not ready');
+      return;
+    }
 
     try {
       setIsCapturing(true);
@@ -165,28 +292,15 @@ export default function ScanDashboardLight({navigation}) {
       setCapturedImage(photo.uri);
       setSelectedGalleryImage(null); // Clear any gallery selection
       
-      // Start processing simulation
-      setTimeout(() => {
+      // Start processing after capture animation
+      setTimeout(async () => {
         setIsCapturing(false);
-        setIsProcessing(true);
-        setAnalysisText('Analyzing the dashboard light');
-
-        const progressInterval = setInterval(() => {
-          setProcessingProgress((prev) => {
-            if (prev >= 100) {
-              clearInterval(progressInterval);
-              setIsProcessing(false);
-              setShowResults(true);
-              return 100;
-            }
-            return prev + 10;
-          });
-        }, 200);
+        await processSelectedImage(photo.uri);
       }, 1000);
 
     } catch (error) {
-      // console.error('Error taking picture:', error);
-      // Alert.alert('Error', 'Failed to capture image');
+      console.error('Error taking picture:', error);
+      Alert.alert('Error', 'Failed to capture image');
       setIsCapturing(false);
       setActiveButton('camera');
     }
@@ -225,6 +339,7 @@ export default function ScanDashboardLight({navigation}) {
     setIsProcessing(false);
     setProcessingProgress(0);
     setShowSavedPhotos(false);
+    setDiagnosisResult(null);
   };
 
   // Get the current image source info
@@ -300,12 +415,12 @@ export default function ScanDashboardLight({navigation}) {
                     <TouchableOpacity 
                       key={photo.id} 
                       style={styles.galleryItem}
-                      onPress={() => {
+                      onPress={async () => {
                         setCapturedImage(photo.uri);
                         setSelectedGalleryImage(photo.uri);
                         setShowSavedPhotos(false);
                         setActiveButton('camera');
-                        processSelectedImage(photo.uri);
+                        await processSelectedImage(photo.uri);
                       }}
                     >
                       <Image 
@@ -421,30 +536,45 @@ export default function ScanDashboardLight({navigation}) {
             )}
 
             {/* Results Section */}
-            {showResults && (
+            {showResults && diagnosisResult && (
               <View style={styles.resultsSection}>
                 <View style={styles.resultContainer}>
                   <View style={styles.resultIconContainer}>
                     <AlertTriangle style={styles.resultIcon} />
                   </View>
                   <View style={styles.resultTextContainer}>
-                    <Text style={styles.resultHeaderText}>Engine Malfunction</Text>
-                    <Text style={styles.resultSubtext}>Critical</Text>
+                    <Text style={styles.resultHeaderText}>
+                      {diagnosisResult.diagnosis || 'Dashboard Light Analysis'}
+                    </Text>
+                    <Text style={styles.resultSubtext}>
+                      {diagnosisResult.severity || 'Analysis Complete'}
+                    </Text>
                   </View>
                 </View>
 
                 <Text style={styles.resultDescription}>
-                  This light indicates a serious issue with the engine. It's crucial to address this immediately to
-                  prevent further damage.
+                  {diagnosisResult.description || 
+                   'The AI has analyzed your dashboard light. Check the detailed results for more information.'}
                 </Text>
 
-                <Button 
-                  onPress={() => navigation.navigate('Results')}
-                  variant="primary" 
-                  style={styles.getTutorialButton}
-                >
-                  Get Tutorial
-                </Button>
+                {/* DiagnosticResults Component - Fixed to use diagnosisResult instead of response */}
+                <DiagnosticResults 
+                  route={{
+                    params: {
+                      diagnosis: diagnosisResult.result?.faultName || diagnosisResult.diagnosis || 'Dashboard Light Analysis',
+                      severity: diagnosisResult.result?.severity || diagnosisResult.severity || 'critical',
+                      description: diagnosisResult.result?.explanation || diagnosisResult.description || 'No description provided.',
+                      costEstimate: diagnosisResult.result?.costEstimate || 'N/A',
+                      videoTitle: 'Watch Repair Tutorial',
+                      videoChannel: 'Auto Help Channel',
+                      videoUrl: diagnosisResult.result?.videoUrl || '',
+                      recommendation: diagnosisResult.result?.recommendation || diagnosisResult.recommendation || '',
+                    }
+                  }}
+                  navigation={navigation}
+                />
+
+                
               </View>
             )}
           </View>
@@ -453,7 +583,6 @@ export default function ScanDashboardLight({navigation}) {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -831,6 +960,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: '#fff',
+    
     textAlign: 'center',
     marginVertical: 20,
   },
