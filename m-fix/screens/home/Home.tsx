@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import BottomNavBar from './navbar';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import VehicleSelectionPopup from './VehicleSelectionPopup'; // ✅ Adjust the path if needed
 
 // Simulated API fetch function (replace with real API later)
 const fetchVehicleStatus = async () => {
@@ -38,11 +38,15 @@ const fetchLatestDiagnosis = async () => {
   });
 };
 
-export default function Home({navigation}) {
+export default function Home({ navigation }) {
   const [status, setStatus] = useState(null);
   const [diagnosis, setDiagnosis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // 🔽 New popup states
+  const [showVehiclePopup, setShowVehiclePopup] = useState(false);
+  const [popupActionType, setPopupActionType] = useState(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -63,6 +67,31 @@ export default function Home({navigation}) {
     loadData();
   }, []);
 
+  // 🔽 Button handlers to show popup
+  const handleScanPress = () => {
+    setPopupActionType('scan');
+    setShowVehiclePopup(true);
+  };
+
+  const handleRecordPress = () => {
+    setPopupActionType('record');
+    setShowVehiclePopup(true);
+  };
+
+  // 🔽 Handle vehicle selection
+  const handleVehicleSelect = (selectedVehicle, actionType) => {
+    console.log('Selected vehicle:', selectedVehicle);
+    console.log('Action type:', actionType);
+
+    setShowVehiclePopup(false); // Close popup
+
+    if (actionType === 'scan') {
+      navigation.navigate('ScanDashboard', { vehicle: selectedVehicle });
+    } else {
+      navigation.navigate('SoundScan', { vehicle: selectedVehicle });
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -82,13 +111,20 @@ export default function Home({navigation}) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={{flex:1,flexDirection:'row',justifyContent:'space-between', }}>
-      <Text style={styles.header}>MFix</Text>
-    <TouchableOpacity><Ionicons name="notifications" size={24} color="white" /></TouchableOpacity>
-    </View>
+      <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+        <Text style={styles.header}>MFix</Text>
+        <TouchableOpacity>
+          <Ionicons name="notifications" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.statusRow}>
-        <TouchableOpacity style={styles.statusBox} onPress={()=>navigation.navigate('ScanDashboard')}><Text style={styles.statusValue}>Tap to scan</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.statusBox} onPress={()=>navigation.navigate('SoundScan')} ><Text style={styles.statusValue}>Tap to record</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.statusBox} onPress={handleScanPress}>
+          <Text style={styles.statusValue}>Tap to scan</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.statusBox} onPress={handleRecordPress}>
+          <Text style={styles.statusValue}>Tap to record</Text>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity style={styles.diagnosticButton}>
@@ -115,10 +151,15 @@ export default function Home({navigation}) {
           source={{ uri: diagnosis.image }}
           style={styles.engineImage}
         />
-        
       </View>
 
-      {/* <BottomNavBar/> */}
+      {/* 🔽 Popup Component Integration */}
+      <VehicleSelectionPopup
+        visible={showVehiclePopup}
+        onClose={() => setShowVehiclePopup(false)}
+        onVehicleSelect={handleVehicleSelect}
+        actionType={popupActionType}
+      />
     </ScrollView>
   );
 }
@@ -152,21 +193,14 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical:20
+    marginVertical: 20
   },
   statusBox: {
     backgroundColor: '#4a5a3e',
     paddingVertical: 50,
     borderRadius: 8,
     width: '48%',
-    paddingHorizontal:40
-  },
-  fullWidth: {
-    width: '100%',
-    marginTop: 8,
-  },
-  statusLabel: {
-    color: '#d2d2d2',
+    paddingHorizontal: 40
   },
   statusValue: {
     color: '#ffffff',
@@ -227,17 +261,5 @@ const styles = StyleSheet.create({
     height: 60,
     marginLeft: 10,
     resizeMode: 'contain',
-  },
-  navBar: {
-    marginTop: 32,
-    paddingTop: 16,
-    borderTopColor: '#2f3a29',
-    borderTopWidth: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  navText: {
-    color: '#9a9a9a',
-    fontSize: 14,
   },
 });

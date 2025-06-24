@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { Dimensions, Platform, StyleSheet, Text, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function EngineSound({navigateTo}:{navigateTo:(screenName: string, params?: {}) => void}) {
+export default function EngineSound({navigation}) {
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recording, setRecording] = useState<any>(null);
   const [recordingStatus, setRecordingStatus] = useState('idle'); // 'idle', 'recording', 'stopped'
@@ -219,8 +219,8 @@ export default function EngineSound({navigateTo}:{navigateTo:(screenName: string
       <StatusBar style="light" />
       
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigateTo('CarOwnerDashboard')}>
+      <View style={styles.header}> 
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={28} color="#A4D65E" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Engine Diagnostics</Text>
