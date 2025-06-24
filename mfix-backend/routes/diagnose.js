@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const axios = require("axios");
 const FormData = require("form-data");
 const { db } = require("../firebase");
@@ -102,6 +103,20 @@ async function runMLSound(audioBuffer, originalname) {
   } catch (error) {
     console.error("ML service error:", error.response ? error.response.data : error.message);
     throw new Error("Failed to get diagnosis from Python ML service");
+
+const { db } = require("../firebase");
+const axios = require("axios");
+require("dotenv").config(); // Load .env variables
+
+// 🔧 Dummy ML Response Generator (used only for sound)
+function runFakeML(type, input) {
+  if (type === "sound") {
+    return {
+      faultName: "Loose Timing Belt",
+      explanation: "The timing belt is loose and may cause engine misfires.",
+      recommendation: "Have a mechanic inspect and tighten the timing belt."
+    };
+
   }
 }
 
@@ -169,9 +184,11 @@ router.post("/sound", async (req, res) => {
       faultName,
       explanation,
       recommendation,
+
       videoUrl,
       createdAt: new Date()
     });
+
 
     // Save diagnostic session to Firestore
     const diagnosticDoc = await db.collection("diagnostics").add({
@@ -186,6 +203,7 @@ router.post("/sound", async (req, res) => {
     res.status(201).json({
       message: "Sound diagnosis complete",
       diagnosticId: diagnosticDoc.id,
+
       result: {
         id: resultDoc.id,
         faultName,
@@ -193,6 +211,7 @@ router.post("/sound", async (req, res) => {
         recommendation,
         videoUrl,
       },
+
     });
   } catch (error) {
     console.error("Sound diagnosis error:", error.response?.data || error.message || error);
@@ -210,7 +229,9 @@ router.post("/image", async (req, res) => {
 
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
+
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+
 
     const promptText = `Analyze this car dashboard warning light image. Respond ONLY with a JSON object containing the following keys:
       "faultName": (string, concise name of the fault)
@@ -226,24 +247,35 @@ router.post("/image", async (req, res) => {
             {
               inlineData: {
                 mimeType: "image/jpeg",
+
                 data: inputData
               }
             }
           ]
         }
       ],
+
+              
+      // Add generation config to request JSON output
+
       generationConfig: {
         responseMimeType: "application/json"
       }
     };
 
     const geminiRes = await axios.post(geminiUrl, payload);
+
+    console.log("Gemini raw response:", JSON.stringify(geminiRes.data, null, 2)); // Debug log for raw response
+
+
     const jsonString = geminiRes.data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!jsonString) {
       throw new Error("No valid JSON response from Gemini.");
     }
 
+
+    // Attempt to parse the JSON string
     let parsedGeminiResult;
     try {
       parsedGeminiResult = JSON.parse(jsonString);
@@ -253,6 +285,9 @@ router.post("/image", async (req, res) => {
     }
 
     const { faultName, explanation, recommendation } = parsedGeminiResult;
+
+
+    // Validate that required fields are present
 
     if (!faultName || !explanation || !recommendation) {
       throw new Error("Gemini response is missing required fields (faultName, explanation, or recommendation).");
@@ -292,4 +327,6 @@ router.post("/image", async (req, res) => {
   }
 });
 
+
 module.exports = router;
+
