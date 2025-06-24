@@ -20,14 +20,13 @@ import Tutorials from './screens/tutorials/Tutorials';
 import Home from './screens/home/Home';
 import { Ionicons } from '@expo/vector-icons'; // Ensure you have this installed
 import Test from './screens/diagnostics/test';
-
+import { AuthProvider } from './services/context/AuthContext'; 
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => {
   return (
-
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
@@ -64,29 +63,30 @@ const TabNavigator = () => {
         }} 
       />
     </Tab.Navigator>
-
   );
 };
+
 export default function App() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Onboarding1">
-        <Stack.Screen name="Onboarding1" component={Welcome} options={{ headerShown: false }}  />
-        <Stack.Screen name="Onboarding2" component={Hero} options={{ headerShown: false }} />
-        <Stack.Screen name="status" component={VehicleStatus} />
-        <Stack.Screen name="Mechanic" component={ContactMechanic} />
-        <Stack.Screen name="Tutorials" component={Tutorials}  />
-        <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-        <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
-        <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
-        <Stack.Screen name='SoundScan' component={EngineSound} options={{ headerShown: false }}/>
-        <Stack.Screen name='Results' component={DiagnosisResult} />
-        <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
-   
+    <AuthProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Onboarding1">
+          <Stack.Screen name="Onboarding1" component={Welcome} options={{ headerShown: false }}  />
+          <Stack.Screen name="Onboarding2" component={Hero} options={{ headerShown: false }} />
+          <Stack.Screen name="status" component={VehicleStatus} />
+          <Stack.Screen name="Mechanic" component={ContactMechanic} />
+          <Stack.Screen name="Tutorials" component={Tutorials}  />
+          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+          <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
+          <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
+          <Stack.Screen name='SoundScan' component={EngineSound} options={{ headerShown: false }}/>
+          <Stack.Screen name='Results' component={DiagnosisResult} />
+          <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
+          <Stack.Screen name="EmailVerification" component={VerificationScreen} options={{ headerShown: false }} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </AuthProvider>
   );
 }
-
