@@ -5,6 +5,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Simple request logger - Place this before your routes
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 const userRoutes = require("./routes/users");
 const requestRoutes = require("./routes/requests");
 const resultRoutes = require("./routes/results");
@@ -29,12 +35,15 @@ app.get("/", (req, res) => {
   res.send("MFix backend is running!");
 });
 
-app.use((req, res, next) => {
-  console.log(`🔍 ${req.method} ${req.url}`);
-  next();
+// Global Error Handling Middleware
+// This should be the LAST middleware. It will catch any errors passed by next()
+// (e.g., from multer) and prevent the default HTML error page.
+app.use((err, req, res, next) => {
+  console.error("An unhandled error occurred:", err.stack);
+  res.status(500).json({ error: "An internal server error occurred", message: err.message });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on http://0.0.0.0:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });
