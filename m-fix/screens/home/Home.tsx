@@ -10,9 +10,10 @@ import {
   Alert,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import VehicleSelectionPopup from './VehicleSelectionPopup'; // ✅ Adjust the path if needed
+import { SafeAreaView } from 'react-native-safe-area-context';
+import VehicleSelectionPopup from './VehicleSelectionPopup'; 
 
-// Simulated API fetch function (replace with real API later)
+// Simulated API fetch function
 const fetchVehicleStatus = async () => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -44,7 +45,6 @@ export default function Home({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 🔽 New popup states
   const [showVehiclePopup, setShowVehiclePopup] = useState(false);
   const [popupActionType, setPopupActionType] = useState(null);
 
@@ -67,7 +67,6 @@ export default function Home({ navigation }) {
     loadData();
   }, []);
 
-  // 🔽 Button handlers to show popup
   const handleScanPress = () => {
     setPopupActionType('scan');
     setShowVehiclePopup(true);
@@ -78,12 +77,8 @@ export default function Home({ navigation }) {
     setShowVehiclePopup(true);
   };
 
-  // 🔽 Handle vehicle selection
   const handleVehicleSelect = (selectedVehicle, actionType) => {
-    console.log('Selected vehicle:', selectedVehicle);
-    console.log('Action type:', actionType);
-
-    setShowVehiclePopup(false); // Close popup
+    setShowVehiclePopup(false);
 
     if (actionType === 'scan') {
       navigation.navigate('ScanDashboard', { vehicle: selectedVehicle });
@@ -94,89 +89,92 @@ export default function Home({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer} edges={['top', 'bottom']}>
         <ActivityIndicator size="large" color="#7ce216" />
         <Text style={{ color: '#fff', marginTop: 10 }}>Loading data...</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer} edges={['top', 'bottom']}>
         <Text style={{ color: 'red' }}>{error}</Text>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={styles.header}>MFix</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
-          <Ionicons name="notifications" size={24} color="white" />
-        </TouchableOpacity>
-
-      </View>
-
-      <View style={styles.statusRow}>
-        <TouchableOpacity style={styles.statusBox} onPress={handleScanPress}>
-          <Text style={styles.statusValue}>Tap to scan</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.statusBox} onPress={handleRecordPress}>
-          <Text style={styles.statusValue}>Tap to record</Text>
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity style={styles.diagnosticButton}>
-        <Text style={styles.diagnosticButtonText}>Start Diagnostic</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.sectionTitle}>Shortcuts</Text>
-      <View style={styles.shortcutsGrid}>
-        {["Recent Results", "Reminders", "Tutorials", "Sell Car"].map((item, idx) => (
-          <View key={idx} style={styles.shortcutBox}>
-            <Text style={styles.shortcutText}>{item}</Text>
-          </View>
-        ))}
-      </View>
-
-      <Text style={styles.sectionTitle}>Latest Diagnosis</Text>
-      <View style={styles.latestDiagnosisBox}>
-        <View>
-          <Text style={styles.carText}>{diagnosis.car}</Text>
-          <Text style={styles.checkText}>{diagnosis.check}</Text>
-          <Text style={styles.noteText}>{diagnosis.note}</Text>
+    <SafeAreaView style={styles.safeContainer} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
+        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={styles.header}>MFix</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
+            <Ionicons name="notifications" size={24} color="white" />
+          </TouchableOpacity>
         </View>
-        <Image
-          source={{ uri: diagnosis.image }}
-          style={styles.engineImage}
-        />
-      </View>
 
-      {/* 🔽 Popup Component Integration */}
-      <VehicleSelectionPopup
-        visible={showVehiclePopup}
-        onClose={() => setShowVehiclePopup(false)}
-        onVehicleSelect={handleVehicleSelect}
-        actionType={popupActionType}
-      />
-    </ScrollView>
+        <View style={styles.statusRow}>
+          <TouchableOpacity style={styles.statusBox} onPress={handleScanPress}>
+            <Text style={styles.statusValue}>Tap to scan</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.statusBox} onPress={handleRecordPress}>
+            <Text style={styles.statusValue}>Tap to record</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.diagnosticButton}>
+          <Text style={styles.diagnosticButtonText}>Start Diagnostic</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.sectionTitle}>Shortcuts</Text>
+        <View style={styles.shortcutsGrid}>
+          {["Recent Results", "Reminders", "Tutorials", "Sell Car"].map((item, idx) => (
+            <View key={idx} style={styles.shortcutBox}>
+              <Text style={styles.shortcutText}>{item}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>Latest Diagnosis</Text>
+        <View style={styles.latestDiagnosisBox}>
+          <View>
+            <Text style={styles.carText}>{diagnosis.car}</Text>
+            <Text style={styles.checkText}>{diagnosis.check}</Text>
+            <Text style={styles.noteText}>{diagnosis.note}</Text>
+          </View>
+          <Image
+            source={{ uri: diagnosis.image }}
+            style={styles.engineImage}
+          />
+        </View>
+
+        <VehicleSelectionPopup
+          visible={showVehiclePopup}
+          onClose={() => setShowVehiclePopup(false)}
+          onVehicleSelect={handleVehicleSelect}
+          actionType={popupActionType}
+        />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeContainer: {
     flex: 1,
     backgroundColor: '#000',
-    padding: 25,
-    paddingTop: 50,
   },
   loadingContainer: {
     flex: 1,
     backgroundColor: '#111c10',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  container: {
+    flex: 1,
+    padding: 25,
+    paddingTop: 50,
   },
   header: {
     color: 'white',
@@ -195,14 +193,14 @@ const styles = StyleSheet.create({
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: 20
+    marginVertical: 20,
   },
   statusBox: {
     backgroundColor: '#4a5a3e',
     paddingVertical: 50,
     borderRadius: 8,
     width: '48%',
-    paddingHorizontal: 40
+    paddingHorizontal: 40,
   },
   statusValue: {
     color: '#ffffff',

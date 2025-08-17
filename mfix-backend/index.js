@@ -43,7 +43,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "An internal server error occurred", message: err.message });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 2020;
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });

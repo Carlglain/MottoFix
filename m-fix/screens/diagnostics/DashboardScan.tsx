@@ -134,8 +134,10 @@ const diagnoseImage = async (base64Image) => {
 
   if (!user) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.loadingText}>Please sign in to continue</Text>
+      <View style={styles.containerAuthMessage}>
+         <TouchableOpacity onPress={()=>navigation.navigate('Login')}> 
+          <Text style={styles.loadingText}>Please sign in to continue </Text> 
+        </TouchableOpacity>
       </View>
     );
   }
@@ -587,6 +589,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+    paddingTop: 16,
+  },
+  containerAuthMessage: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   scrollContainer: {
     flex: 1,

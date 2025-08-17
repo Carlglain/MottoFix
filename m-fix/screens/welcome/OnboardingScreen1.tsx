@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const OnboardingScreen = ({ navigation }) => {
-
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Text style={styles.appName}>MFix</Text>
 
       <View style={styles.progressBarContainer}>
@@ -24,11 +24,17 @@ const OnboardingScreen = ({ navigation }) => {
         <View style={styles.inactiveDot} />
       </View>
 
-      <TouchableOpacity style={styles.nextButton} onPress={() => navigation.navigate('Onboarding2')}>
+      <TouchableOpacity
+        style={styles.nextButton}
+        onPress={() => navigation.navigate('Onboarding2')}
+      >
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={()=>navigation.replace('Login')} style={styles.skipButton}>
+      <TouchableOpacity
+        onPress={() => navigation.replace('HomeTabs')}
+        style={styles.skipButton}
+      >
         <Text style={styles.skipButtonText}>Skip</Text>
       </TouchableOpacity>
 
@@ -49,7 +55,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'white',
     marginTop: 20,
-    // fontWeight: '1000',
   },
   progressBarContainer: {
     width: '90%',
@@ -72,7 +77,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   image: {
-    // width: '390',
     height: 292.12,
     borderRadius: 10,
   },
