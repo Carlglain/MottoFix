@@ -56,10 +56,10 @@ const TabNavigator = () => {
         }} 
       />
       <Tab.Screen 
-        name="Scan" 
-        component={DashboardScan} 
+        name="Tutorial"   // ✅ changed from Scan → Tutorial
+        component={Tutorials} 
         options={{
-          tabBarIcon: ({ color }) => <Ionicons name="scan-outline" size={20} color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="play-circle-outline" size={20} color={color} />, // ✅ changed icon
         }} 
       />
       <Tab.Screen 
