@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore'; // <-- updated import here
 import { auth, db } from '../../services/firebase';
 
 export default function SignUpScreen({ navigation }) {
@@ -126,13 +126,12 @@ export default function SignUpScreen({ navigation }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const userId = userCredential.user.uid;
 
-      // Save user details to Firestore
-      await addDoc(collection(db, 'users'), {
+      // Save user details to Firestore using setDoc and user's UID as document ID
+      await setDoc(doc(db, 'users', userId), {
         name: name.trim(),
         email: email.toLowerCase().trim(),
         phone: phone.trim(),
         role,
-        userId,
         createdAt: new Date().toISOString(),
       });
 
@@ -219,7 +218,6 @@ export default function SignUpScreen({ navigation }) {
 
   // Real-time validation on field blur
   const handleFieldBlur = (field, value) => {
-    // Clear general error when user starts fixing issues
     if (generalError) {
       setGeneralError('');
     }
@@ -267,7 +265,6 @@ export default function SignUpScreen({ navigation }) {
             delete newErrors.password;
           }
         }
-        // Also check confirm password if it exists
         if (confirm && value !== confirm) {
           newErrors.confirm = 'Passwords do not match';
         } else if (confirm && value === confirm) {
@@ -292,7 +289,6 @@ export default function SignUpScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.header}>Sign Up</Text>
 
-      {/* General error message display */}
       {generalError ? (
         <View style={styles.generalErrorContainer}>
           <Text style={styles.generalErrorText}>{generalError}</Text>
