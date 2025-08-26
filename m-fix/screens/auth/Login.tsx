@@ -15,6 +15,7 @@ import {
   signInWithCredential,
 } from 'firebase/auth';
 import { auth } from '../../services/firebase';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
@@ -31,17 +32,14 @@ const LoginScreen = ({ navigation }) => {
     androidClientId: '835060401854-46tgqfqd32nb0o2a84qeah506c5etce5.apps.googleusercontent.com',
     iosClientId: '<your_ios_client_id_if_any>',
     webClientId: '835060401854-ca5im2jb727b2ub202rtlhee6q7rq6tk.apps.googleusercontent.com',
-    redirectUri:AuthSession.makeRedirectUri({ useProxy: true }) 
+    redirectUri: AuthSession.makeRedirectUri({ useProxy: true }),
   });
 
-
-console.log('Redirect URI:', AuthSession.makeRedirectUri({ useProxy: true }));
-
+  console.log('Redirect URI:', AuthSession.makeRedirectUri({ useProxy: true }));
 
   useEffect(() => {
     if (response?.type === 'success' && response.authentication?.idToken) {
       const { idToken } = response.authentication;
-
       const credential = GoogleAuthProvider.credential(idToken);
 
       signInWithCredential(auth, credential)
@@ -75,7 +73,7 @@ console.log('Redirect URI:', AuthSession.makeRedirectUri({ useProxy: true }));
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <Ionicons name="globe-outline" size={18} color="#fff" style={styles.languageIcon} />
 
       <Text style={styles.title}>Welcome back</Text>
@@ -127,7 +125,6 @@ console.log('Redirect URI:', AuthSession.makeRedirectUri({ useProxy: true }));
             }
           }}
         >
-         
           <Image
             source={{ uri: 'https://cdn-icons-png.flaticon.com/512/2991/2991148.png' }}
             style={styles.googleIcon}
@@ -146,9 +143,10 @@ console.log('Redirect URI:', AuthSession.makeRedirectUri({ useProxy: true }));
           Sign Up
         </Text>
       </Text>
-    </View>
+    </SafeAreaView>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {

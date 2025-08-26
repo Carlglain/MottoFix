@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@react-navigation/stack": "^7.4.7"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.10"
+  }
+}

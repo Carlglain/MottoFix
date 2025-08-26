@@ -109,9 +109,15 @@ export default function Home({ navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 30 }}>
         <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text style={styles.header}>MFix</Text>
+          <View style={{flexDirection:'row', alignContent:"center", gap:"40"}}>
+          <TouchableOpacity onPress={()=>navigation.navigate("FAQ")}>
+            <Ionicons name="help-circle" size={24} color="white" />
+            
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Notifications")}>
             <Ionicons name="notifications" size={24} color="white" />
           </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.statusRow}>
