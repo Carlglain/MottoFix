@@ -28,6 +28,7 @@ import { AuthProvider } from './services/context/AuthContext';
 import ProfilePage from './screens/user/ProfilePage';
 import Payments from './screens/user/Payments';
 import Addresses from './screens/user/Addresses';
+import FAQPage from './screens/help and faq/faq';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -107,6 +108,7 @@ export default function App() {
             <Stack.Screen name="Results" component={DiagnosisResult} />
             <Stack.Screen name="nearbymec" component={FindMechanicsScreen} />
             <Stack.Screen name="Notifications" component={NotificationsScreen} />
+            <Stack.Screen name="FAQ" component={FAQPage} />
 
             {/* ✅ Settings inner screens */}
             <Stack.Screen name="ProfilePage" component={ProfilePage} />
