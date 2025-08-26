@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Get navigation prop from React Navigation
 const OnboardingScreen2 = ({ navigation }) => {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <Image
         source={{
           uri: 'https://www.tuningblog.eu/en/categories/tipps_tuev-dekra-u-co/carly-obd-app-236273/attachment/car-health-obd-tuning-diagnosis-test-report-1/',
@@ -25,12 +25,10 @@ const OnboardingScreen2 = ({ navigation }) => {
 
       <TouchableOpacity
         style={styles.nextButton}
-        onPress={() => navigation.navigate('Login')} // Navigate to dashboard
+        onPress={() => navigation.navigate('HomeTabs')}
       >
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
-
-      
     </SafeAreaView>
   );
 };
@@ -38,7 +36,7 @@ const OnboardingScreen2 = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000', // dark green-black
+    backgroundColor: '#000', 
     alignItems: 'center',
     paddingHorizontal: 20,
   },
@@ -70,7 +68,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#8bc34a', // light green
+    backgroundColor: '#8bc34a',
     marginHorizontal: 4,
   },
   inactiveDot: {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useAuth } from '../../services/context/AuthContext';
 
 const DiagnosticResults = ({ route, navigation }) => {
   const {
@@ -28,7 +29,23 @@ const DiagnosticResults = ({ route, navigation }) => {
   const embedUrl = videoUrl.includes('youtube.com/watch')
     ? videoUrl.replace("watch?v=", "embed/")
     : videoUrl;
-
+   const { user, loading } = useAuth();
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    );
+  }
+  if (!user) {
+    return (
+      <View style={styles.containerAuthMessage}>
+        <TouchableOpacity  onPress={()=>navigation.navigate('Login')}> 
+          <Text style={styles.loadingText}>Please sign in to continue </Text> 
+        </TouchableOpacity>
+      </View>
+    );
+  }
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.section}>
@@ -100,6 +117,19 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 32,
+  },
+  loadingText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  containerAuthMessage: {
+    flex: 1,
+    color:'rgba(42, 54, 157, 0.27)',
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   diagnosisTitle: {
     fontSize: 24,
@@ -227,6 +257,9 @@ const styles = StyleSheet.create({
   tutorialButtonText: {
     color: '#111827',
   },
+  signinText:{
+    color:'#3e36d1ff'
+  }
 });
 
 export default DiagnosticResults;

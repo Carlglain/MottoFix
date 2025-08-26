@@ -1,10 +1,12 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import EngineSound from './screens/diagnostics/EngineSound'
-import DiagnosisResult from './screens/diagnostics/DiagnosisResult'
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import EngineSound from './screens/diagnostics/EngineSound';
+import DiagnosisResult from './screens/diagnostics/DiagnosisResult';
 import DashboardScan from './screens/diagnostics/DashboardScan';
 import VerificationScreen from './screens/auth/emailver';
 import SignUpScreen from './screens/auth/Register';
@@ -18,13 +20,9 @@ import VehicleStatus from './screens/vehicle status/VehicleStutus';
 import ContactMechanic from './screens/contact mechanic/ContactMechanic';
 import Tutorials from './screens/tutorials/Tutorials';
 import Home from './screens/home/Home';
-import { Ionicons } from '@expo/vector-icons'; // Ensure you have this installed
 import Test from './screens/diagnostics/test';
-import { AuthProvider } from './services/context/AuthContext'; 
 import NotificationsScreen from './screens/home/NotificationScreen';
-
-
-
+import { AuthProvider } from './services/context/AuthContext'; 
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -34,8 +32,15 @@ const TabNavigator = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { position: 'absolute', bottom: 0, left: 0, right: 0 ,backgroundColor:"#333"},tabBarActiveTintColor: '#fff',     // Text color when tab is active
-    tabBarInactiveTintColor: '#888',
+        tabBarStyle: { 
+          position: 'absolute', 
+          bottom: 0, 
+          left: 0, 
+          right: 0,
+          backgroundColor:"#333"
+        },
+        tabBarActiveTintColor: '#fff',
+        tabBarInactiveTintColor: '#888',
       }}
     >
       <Tab.Screen 
@@ -61,7 +66,7 @@ const TabNavigator = () => {
       />
       <Tab.Screen 
         name="Settings" 
-        component={ProfilePage} //will change to the settings page when it's designed
+        component={ProfilePage}
         options={{
           tabBarIcon: ({ color }) => <Ionicons name="settings-outline" size={20} color={color} />,
         }} 
@@ -72,26 +77,28 @@ const TabNavigator = () => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName="Onboarding1">
-          <Stack.Screen name="Onboarding1" component={Welcome} options={{ headerShown: false }}  />
-          <Stack.Screen name="Onboarding2" component={Hero} options={{ headerShown: false }} />
-          <Stack.Screen name="status" component={VehicleStatus} />
-          <Stack.Screen name="Mechanic" component={ContactMechanic} />
-          <Stack.Screen name="Tutorials" component={Tutorials}  />
-          <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-          <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
-          <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
-          <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
-          <Stack.Screen name='SoundScan' component={EngineSound} options={{ headerShown: false }}/>
-          <Stack.Screen name='Results' component={DiagnosisResult} />
-          <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
-          <Stack.Screen name="EmailVerification" component={VerificationScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }}/>
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName="Onboarding1">
+            <Stack.Screen name="Onboarding1" component={Welcome} options={{ headerShown: false }}  />
+            <Stack.Screen name="Onboarding2" component={Hero} options={{ headerShown: false }} />
+            <Stack.Screen name="status" component={VehicleStatus} />
+            <Stack.Screen name="Mechanic" component={ContactMechanic} />
+            <Stack.Screen name="Tutorials" component={Tutorials}  />
+            <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+            <Stack.Screen name="FindMechanic" component={FindMechanicsScreen} />
+            <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="HomeTabs" component={TabNavigator} options={{ headerShown: false }} />
+            <Stack.Screen name="ScanDashboard" component={DashboardScan} options={{ headerShown: false }} />
+            <Stack.Screen name='SoundScan' component={EngineSound} options={{ headerShown: false }}/>
+            <Stack.Screen name='Results' component={DiagnosisResult} />
+            <Stack.Screen name='nearbymec' component={FindMechanicsScreen} />
+            <Stack.Screen name="EmailVerification" component={VerificationScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ headerShown: false }}/>
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
