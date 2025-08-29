@@ -54,7 +54,7 @@ const diagnoseImage = async (base64Image) => {
   try {
     console.log('Starting API call to diagnose image...');
     
-    const response = await axios.post('http://10.50.108.197:3000/diagnose/image', {
+    const response = await axios.post('http://10.67.4.197:3000/diagnose/image', {
       userId: user.uid,
       vehicleId: "carModelX",
       inputData: base64Image
