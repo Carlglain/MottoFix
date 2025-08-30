@@ -9,10 +9,22 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../navigation/type'; // adjust path
 
 const roles = ['Car Owner', 'Mechanic'];
 
-export default function VerificationScreen({ navigation }) {
+// ✅ Type the navigation prop
+type VerificationScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'EmailVerification'
+>;
+
+type Props = {
+  navigation: VerificationScreenNavigationProp;
+};
+
+export default function VerificationScreen({ navigation }: Props) {
   const [code, setCode] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,11 +45,9 @@ export default function VerificationScreen({ navigation }) {
 
     setLoading(true);
     try {
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       Alert.alert('Success', 'Account created!');
-      // Navigate to home or login
-      navigation.navigate('Login');
+      navigation.navigate('Login'); // ✅ navigation fully typed
     } catch (err) {
       Alert.alert('Error', 'Signup failed');
     } finally {
@@ -47,7 +57,6 @@ export default function VerificationScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Back Button */}
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backArrow}>
         <Ionicons name="arrow-back" size={22} color="#fff" />
       </TouchableOpacity>
@@ -90,7 +99,6 @@ export default function VerificationScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Role Picker Dropdown */}
       <TouchableOpacity style={styles.inputRow} onPress={() => {
         const nextRole = role === roles[0] ? roles[1] : roles[0];
         setRole(nextRole);
@@ -102,11 +110,7 @@ export default function VerificationScreen({ navigation }) {
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#000" />
-        ) : (
-          <Text style={styles.signUpText}>Sign Up</Text>
-        )}
+        {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.signUpText}>Sign Up</Text>}
       </TouchableOpacity>
 
       <Text style={styles.footerText}>
@@ -118,62 +122,14 @@ export default function VerificationScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f1b0b',
-    padding: 20,
-  },
-  backArrow: {
-    marginBottom: 10,
-  },
-  title: {
-    color: '#fff',
-    fontSize: 18,
-    alignSelf: 'center',
-    marginBottom: 20,
-    fontWeight: '600',
-  },
-  input: {
-    backgroundColor: '#2a3924',
-    color: '#fff',
-    borderRadius: 8,
-    padding: 14,
-    marginBottom: 12,
-  },
-  inputRow: {
-    backgroundColor: '#2a3924',
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  inputFlex: {
-    flex: 1,
-    color: '#fff',
-    fontSize: 14,
-  },
-  signUpButton: {
-    backgroundColor: '#7ce216',
-    paddingVertical: 14,
-    borderRadius: 24,
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  signUpText: {
-    fontWeight: 'bold',
-    color: '#000',
-  },
-  footerText: {
-    marginTop: 24,
-    color: '#999',
-    textAlign: 'center',
-    fontSize: 13,
-  },
-  link: {
-    color: '#7ce216',
-    fontWeight: 'bold',
-  },
+  container: { flex: 1, backgroundColor: '#0f1b0b', padding: 20 },
+  backArrow: { marginBottom: 10 },
+  title: { color: '#fff', fontSize: 18, alignSelf: 'center', marginBottom: 20, fontWeight: '600' },
+  input: { backgroundColor: '#2a3924', color: '#fff', borderRadius: 8, padding: 14, marginBottom: 12 },
+  inputRow: { backgroundColor: '#2a3924', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  inputFlex: { flex: 1, color: '#fff', fontSize: 14 },
+  signUpButton: { backgroundColor: '#7ce216', paddingVertical: 14, borderRadius: 24, alignItems: 'center', marginTop: 16 },
+  signUpText: { fontWeight: 'bold', color: '#000' },
+  footerText: { marginTop: 24, color: '#999', textAlign: 'center', fontSize: 13 },
+  link: { color: '#7ce216', fontWeight: 'bold' },
 });
